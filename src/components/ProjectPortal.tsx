@@ -274,20 +274,20 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
 
       {/* 2. CASHFLOW PLAN & ACTUAL INTEGRATED */}
       {activeTab === 'cashflow' && (() => {
-        // Real params parsed from the project sheet (fallback to derived only if absent)
+        // Params lấy ĐÚNG từ file Excel — KHÔNG bịa (không fallback về ngân sách/ngày dự án).
+        // Ô nào trống trong file thì để 0/'' và hiển thị "—".
         const dp = detailedCashflow?.params || {};
         const params = {
-          contractValue: (cashflowMode === 'actual' ? dp.actualContractValue : dp.plannedContractValue) || project.budget,
-          contractDate: (cashflowMode === 'actual' ? dp.actualContractDate : dp.plannedContractDate) || project.startDate,
-          warningThreshold: dp.warningThreshold || project.budget * 0.05
+          contractValue: Number(cashflowMode === 'actual' ? dp.actualContractValue : dp.plannedContractValue) || 0,
+          contractDate: (cashflowMode === 'actual' ? dp.actualContractDate : dp.plannedContractDate) || '',
+          warningThreshold: Number(dp.warningThreshold) || 0
         };
+        const money = (n: number) => (n > 0 ? n.toLocaleString('vi-VN') + ' đ' : '—');
 
-        // Real detailed cash flow from Excel; only fall back to generated data when the
-        // sheet has no cashflow model at all (never overwrite real values).
+        // CHỈ dùng dữ liệu dòng tiền THẬT từ file Excel — không bao giờ sinh dữ liệu giả.
+        // Kỳ nào file không có thì bảng để trống (hiển thị thông báo "chưa có dữ liệu").
         const realRows = (cashflowMode === 'actual' ? detailedCashflow?.actual : detailedCashflow?.planned) || [];
-        let activeDetailedCashflow: DetailedCashFlowMonth[] = realRows.length
-          ? (realRows as any)
-          : generateFallbackDetailedCashflow(cashflow, cashflowMode === 'actual', project.budget);
+        const activeDetailedCashflow: DetailedCashFlowMonth[] = (realRows as any);
 
         // Format raw numbers perfectly like a real financial document (e.g., "6,080,646,227")
         const formatValue = (num: number) => {
@@ -367,27 +367,32 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col items-center justify-center space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Giá trị hợp đồng</span>
                 <span className="bg-slate-100 px-4 py-2 rounded-lg font-mono text-base font-black text-slate-800 border border-slate-200 w-full text-center">
-                  {params.contractValue.toLocaleString('vi-VN')}
+                  {money(params.contractValue)}
                 </span>
               </div>
 
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col items-center justify-center space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ngày hợp đồng</span>
                 <span className="bg-slate-100 px-4 py-2 rounded-lg font-mono text-base font-black text-slate-800 border border-slate-200 w-full text-center">
-                  {params.contractDate}
+                  {params.contractDate || '—'}
                 </span>
               </div>
 
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col items-center justify-center space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cảnh báo khi số dư dưới</span>
                 <span className="bg-rose-50 text-rose-700 px-4 py-2 rounded-lg font-mono text-base font-black border border-rose-200 w-full text-center">
-                  {params.warningThreshold.toLocaleString('vi-VN')}
+                  {money(params.warningThreshold)}
                 </span>
               </div>
             </div>
 
             {/* DETAILED SPREADSHEET TABLE CARD */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              {activeDetailedCashflow.length === 0 ? (
+                <div className="p-10 text-center text-slate-400 text-sm font-medium">
+                  Chưa có dữ liệu dòng tiền {cashflowMode === 'plan' ? '(Kế hoạch)' : '(Thực tế)'} cho dự án này trong file Excel.
+                </div>
+              ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[1000px]">
                   <thead>
@@ -686,6 +691,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
 
             {/* ALERT & NOTIFICATION PANEL FOR LOW CASH BALANCES */}
