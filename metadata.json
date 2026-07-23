@@ -1,0 +1,6 @@
+{
+  "name": "Enterprise Construction Project Management",
+  "description": "Hệ thống quản lý dự án xây dựng Enterprise đa dự án, tích hợp nhân lực, tài chính, tiến độ và kiểm soát chất lượng.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
