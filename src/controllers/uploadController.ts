@@ -22,7 +22,9 @@ const publicReq = (r: any) => ({
 // Áp dụng (import) file ngay khi Giám đốc điều hành (Đỗ Việt Phương) duyệt
 async function applyIfApproved(reqDoc: any) {
   if (reqDoc.status !== 'pending' || !reqDoc.gddhApproved) return reqDoc;
-  const stats = await importTemplate(reqDoc.storedPath, reqDoc.filename, reqDoc.requestedByName || reqDoc.requestedBy);
+  const fileBuffer = reqDoc.fileData || (reqDoc.storedPath ? fs.readFileSync(reqDoc.storedPath) : null);
+  if (!fileBuffer) throw new Error('Không tìm thấy dữ liệu file để import');
+  const stats = await importTemplate(fileBuffer, reqDoc.filename, reqDoc.requestedByName || reqDoc.requestedBy);
   reqDoc.status = 'applied';
   reqDoc.appliedAt = new Date();
   reqDoc.appliedStats = stats;
@@ -42,7 +44,9 @@ export const createUploadRequest = async (req: AuthedRequest, res: Response) => 
 
     const doc: any = await UploadRequestModel.create({
       filename: req.file.originalname,
-      storedPath: req.file.path,
+      storedPath: req.file.path || '',
+      fileData: req.file.buffer,
+      mimeType: req.file.mimetype,
       requestedBy: uname,
       requestedByName: fullName,
       requestedByRole: role,
@@ -113,12 +117,12 @@ export const previewUpload = async (req: AuthedRequest, res: Response) => {
   try {
     const doc: any = await UploadRequestModel.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Không tìm thấy yêu cầu upload' });
-    if (!doc.storedPath || !fs.existsSync(doc.storedPath)) {
+    if (!doc.fileData && (!doc.storedPath || !fs.existsSync(doc.storedPath))) {
       return res.status(404).json({ error: 'File Excel gốc không còn tồn tại trên máy chủ' });
     }
 
     const XLSX = (xlsx as any).default || xlsx;
-    const fileBuffer = fs.readFileSync(doc.storedPath);
+    const fileBuffer = doc.fileData || fs.readFileSync(doc.storedPath);
     const wb = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true });
     
     const utils = XLSX.utils || (xlsx as any).utils;
@@ -156,6 +160,12 @@ export const downloadUpload = async (req: AuthedRequest, res: Response) => {
   try {
     const doc: any = await UploadRequestModel.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Không tìm thấy yêu cầu upload' });
+    if (doc.fileData) {
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.filename)}"`);
+      res.setHeader('Content-Type', doc.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      return res.send(doc.fileData);
+    }
+
     if (!doc.storedPath || !fs.existsSync(doc.storedPath)) {
       return res.status(404).json({ error: 'File Excel gốc không còn tồn tại trên máy chủ' });
     }

@@ -131,6 +131,8 @@ export const UserModel = makeModel('TplUser', UserSchema, 'tpl_users');
 const UploadRequestSchema = new Schema({
   filename: String,
   storedPath: String,
+  fileData: Buffer,
+  mimeType: String,
   requestedBy: String,       // username người đăng
   requestedByName: String,   // họ tên người đăng
   requestedByRole: String,

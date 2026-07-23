@@ -539,9 +539,9 @@ function resolveProjectId(sheetName: string, projects: any[]): { id: string; nam
 }
 
 // ---------- orchestrator ----------
-export async function importTemplate(filePath: string, filename: string, username = 'System') {
+export async function importTemplate(fileData: Buffer, filename: string, username = 'System') {
   const start = Date.now();
-  const wb = xlsx.read(fs.readFileSync(filePath), { type: 'buffer', cellDates: true });
+  const wb = xlsx.read(fileData, { type: 'buffer', cellDates: true });
   const sheet = (name: string): Grid | null => (wb.Sheets[name] ? grid(wb.Sheets[name]) : null);
 
   // 1. Projects = Timeline merged with Budget
