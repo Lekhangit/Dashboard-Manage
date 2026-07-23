@@ -41,8 +41,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
             <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
           </div>
           <div className="text-left">
-            <h1 className="text-white font-black tracking-wide leading-none">VINACON</h1>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-indigo-300 font-bold">Enterprise Suite</p>
+            <h1 className="text-white font-black tracking-wide leading-none">TÂN PHÁT LONG</h1>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-indigo-300 font-bold">Dashboard</p>
           </div>
         </div>
 
@@ -95,14 +95,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
             </button>
           </form>
 
-          <div className="mt-5 flex items-start gap-2 text-[11px] text-slate-400 border-t border-white/10 pt-4">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <span>Tài khoản do <b className="text-slate-300">quản trị viên</b> cấp. Lần đầu: đăng nhập <b className="text-slate-300">admin / admin123</b> rồi đổi mật khẩu &amp; tạo tài khoản cho nhân sự.</span>
-          </div>
         </div>
 
         <p className="text-center text-[10px] text-slate-600 mt-6 uppercase tracking-widest font-bold">
-          Corporate Construction PM System • VinaCON © 2026
+          Corporate Construction PM System • Tân Phát Long © 2026
         </p>
       </div>
     </div>
