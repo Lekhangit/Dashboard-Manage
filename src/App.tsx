@@ -300,7 +300,7 @@ export default function App() {
           {/* Logo Brand Frame — logo phủ hết phần trên sidebar */}
           <div className="relative p-3 border-b border-[#1F2937]">
             <div className="rounded-lg bg-white p-2 flex items-center justify-center">
-              <img src="/uploads/images/logo1-1775554290.png" alt="Logo" className="w-full max-h-20 object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-full max-h-20 object-contain" />
             </div>
             {/* Realtime Live Pulse */}
             <div className="absolute top-4 right-4 flex items-center gap-1">

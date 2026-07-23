@@ -38,7 +38,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
         {/* Brand */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-lg">
-            <img src="/uploads/images/logo1-1775554290.png" alt="Logo" className="w-full h-full object-contain p-1" />
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
           </div>
           <div className="text-left">
             <h1 className="text-white font-black tracking-wide leading-none">VINACON</h1>
