@@ -948,7 +948,8 @@ export default function App() {
                       </span>
                     </div>
 
-                    <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[680px]">
                       <thead>
                         <tr className="bg-slate-50/70 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-[#E5E7EB]">
                           <th className="py-3 px-4 font-sans">Tên Dự Án</th>
@@ -982,6 +983,7 @@ export default function App() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
               )}

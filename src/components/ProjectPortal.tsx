@@ -460,7 +460,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
 
                     {/* ROW: THU THEO IPC */}
                     <tr className="bg-slate-50/30 font-bold text-slate-800">
-                      <td className="py-2.5 px-4 pl-8 border-r border-slate-200 sticky left-0 z-10 bg-slate-50/30">
+                      <td className="py-2.5 px-4 pl-8 border-r border-slate-200 sticky left-0 z-10 bg-slate-100">
                         Thu theo IPC
                       </td>
                       {activeDetailedCashflow.map((cf, idx) => (
@@ -547,7 +547,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
 
                     {/* ROW: CHI PHÍ TRỰC TIẾP */}
                     <tr className="bg-slate-50/30 font-bold text-slate-800">
-                      <td className="py-2.5 px-4 pl-8 border-r border-slate-200 sticky left-0 z-10 bg-slate-50/30">
+                      <td className="py-2.5 px-4 pl-8 border-r border-slate-200 sticky left-0 z-10 bg-slate-100">
                         Chi phí trực tiếp
                       </td>
                       {activeDetailedCashflow.map((cf, idx) => {
