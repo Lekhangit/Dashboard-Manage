@@ -1061,6 +1061,7 @@ export default function App() {
                         onUpdateIssue={handleUpdateIssue}
                         focusedIssueId={focusedIssueId}
                         onFocusHandled={() => setFocusedIssueId(null)}
+                        authUser={authUser}
                       />
                     </div>
                   ) : (

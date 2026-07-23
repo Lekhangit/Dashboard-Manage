@@ -147,6 +147,17 @@ const UploadRequestSchema = new Schema({
 }, opts);
 export const UploadRequestModel = makeModel('TplUploadRequest', UploadRequestSchema, 'tpl_upload_requests');
 
+// 12. IssueComment — chat "Thảo luận chỉ đạo" theo từng vấn đề (chỉ CEO Phương/GĐĐH & CHT được gửi)
+const IssueCommentSchema = new Schema({
+  issueId: { type: String, index: true },
+  user: String,       // username
+  userName: String,   // họ tên
+  role: String,
+  text: String,
+  createdAt: { type: Date, default: Date.now },
+}, opts);
+export const IssueCommentModel = makeModel('TplIssueComment', IssueCommentSchema, 'tpl_issue_comments');
+
 // 9. ImportHistory (audit of uploads)
 const ImportHistorySchema = new Schema({
   filename: String, user: String, sheets: Number,

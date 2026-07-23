@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Issue, Project } from '../types';
-import { Kanban, List, Plus, Search, FileDown, Eye, Edit2, AlertCircle, CheckCircle2, CircleDot, User, DollarSign, Calendar, MessageSquare, Paperclip, Briefcase } from 'lucide-react';
+import { Issue, Project, AuthUser, ROLE_LABELS } from '../types';
+import { Kanban, List, Plus, Search, FileDown, Eye, Edit2, AlertCircle, CheckCircle2, CircleDot, User, DollarSign, Calendar, MessageSquare, Paperclip, Briefcase, Send, Loader2, Lock } from 'lucide-react';
+import { apiListComments, apiPostComment } from '../authClient';
 
 interface IssueKanbanProps {
   issues: Issue[];
@@ -14,6 +15,7 @@ interface IssueKanbanProps {
   onUpdateIssue: (issue: Issue) => void;
   focusedIssueId?: string | null;
   onFocusHandled?: () => void;
+  authUser: AuthUser;
 }
 
 export const IssueKanban: React.FC<IssueKanbanProps> = ({
@@ -22,7 +24,8 @@ export const IssueKanban: React.FC<IssueKanbanProps> = ({
   onAddIssue,
   onUpdateIssue,
   focusedIssueId,
-  onFocusHandled
+  onFocusHandled,
+  authUser
 }) => {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('kanban');
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,28 +47,38 @@ export const IssueKanban: React.FC<IssueKanbanProps> = ({
   const [formTargetComplete, setFormTargetComplete] = useState('');
   const [formStatus, setFormStatus] = useState<'Opened' | 'In Progress' | 'Closed'>('Opened');
 
-  // Comment state
+  // Chat "Thảo luận chỉ đạo" — lưu server, chỉ CEO Phương (GĐĐH) & Ban chỉ huy (CHT) được gửi
   const [commentText, setCommentText] = useState('');
-  const [mockComments, setMockComments] = useState<Record<string, { user: string; text: string; date: string }[]>>({
-    'ISS-001': [
-      { user: 'Đỗ Việt Phương', text: 'Cần kiểm tra kỹ mác bê tông trước khi nghiệm thu dặm vá.', date: '2026-07-08 09:30' },
-      { user: 'Hồ Xuân Lực', text: 'Nhất trí, chúng tôi đã chỉ đạo kỹ thuật khoan lấy mẫu thử tải.', date: '2026-07-08 11:15' }
-    ]
-  });
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [postingComment, setPostingComment] = useState(false);
+  const canChat = authUser.role === 'gddh' || authUser.role === 'cht';
 
-  const handleAddComment = () => {
-    if (!activeIssue || !commentText.trim()) return;
-    const key = activeIssue.id;
-    const newComment = {
-      user: 'CEO Ban Điều Hành',
-      text: commentText,
-      date: new Date().toISOString().replace('T', ' ').slice(0, 16)
-    };
-    setMockComments({
-      ...mockComments,
-      [key]: [...(mockComments[key] || []), newComment]
-    });
-    setCommentText('');
+  const loadComments = async (issueId: string) => {
+    setCommentsLoading(true);
+    try { setComments(await apiListComments(issueId)); }
+    catch { setComments([]); }
+    finally { setCommentsLoading(false); }
+  };
+
+  // Tải tin nhắn khi mở chi tiết một vấn đề
+  useEffect(() => {
+    if (isDetailOpen && activeIssue) loadComments(activeIssue.id);
+    else setComments([]);
+  }, [isDetailOpen, activeIssue?.id]);
+
+  const handleAddComment = async () => {
+    if (!activeIssue || !commentText.trim() || !canChat) return;
+    setPostingComment(true);
+    try {
+      await apiPostComment(activeIssue.id, commentText.trim());
+      setCommentText('');
+      await loadComments(activeIssue.id);
+    } catch (e: any) {
+      alert(e.message || 'Không gửi được tin nhắn');
+    } finally {
+      setPostingComment(false);
+    }
   };
 
   // Filter issues
@@ -786,44 +799,62 @@ export const IssueKanban: React.FC<IssueKanbanProps> = ({
                 </div>
               </div>
 
-              {/* Comments Section */}
+              {/* Comments Section — chat chỉ đạo (chỉ CEO Phương & Ban chỉ huy được gửi) */}
               <div className="space-y-3">
                 <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400 flex items-center gap-1.5">
                   <MessageSquare className="w-3.5 h-3.5" />
                   Thảo luận chỉ đạo (CEO / Chỉ huy)
                 </span>
 
-                <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1">
-                  {(mockComments[activeIssue.id] || []).map((cmt, idx) => (
-                    <div key={idx} className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                        <span className="font-bold text-slate-700">{cmt.user}</span>
-                        <span className="font-mono">{cmt.date}</span>
+                <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                  {commentsLoading && (
+                    <div className="flex items-center justify-center py-4 text-slate-400 text-[11px]"><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> Đang tải...</div>
+                  )}
+                  {!commentsLoading && comments.map((cmt) => {
+                    const mine = cmt.user === authUser.username;
+                    return (
+                      <div key={cmt.id} className={`p-2.5 rounded-lg border ${mine ? 'bg-indigo-50 border-indigo-100 ml-6' : 'bg-slate-50 border-slate-100 mr-6'}`}>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1 gap-2">
+                          <span className="font-bold text-slate-700 truncate">
+                            {cmt.userName}
+                            <span className="ml-1 font-normal text-indigo-500">· {ROLE_LABELS[cmt.role as keyof typeof ROLE_LABELS] || cmt.role}</span>
+                          </span>
+                          <span className="font-mono shrink-0">{cmt.createdAt ? new Date(cmt.createdAt).toLocaleString('vi-VN') : ''}</span>
+                        </div>
+                        <p className="text-slate-700 font-semibold text-[11px] leading-relaxed whitespace-pre-wrap">{cmt.text}</p>
                       </div>
-                      <p className="text-slate-600 font-semibold text-[11px] leading-relaxed">{cmt.text}</p>
-                    </div>
-                  ))}
-                  {(mockComments[activeIssue.id] || []).length === 0 && (
-                    <div className="text-center py-4 text-slate-400 font-medium text-[11px]">Chưa có thảo luận. Hãy gửi hướng dẫn đầu tiên.</div>
+                    );
+                  })}
+                  {!commentsLoading && comments.length === 0 && (
+                    <div className="text-center py-4 text-slate-400 font-medium text-[11px]">Chưa có thảo luận nào.</div>
                   )}
                 </div>
 
-                {/* Comment input */}
-                <div className="flex gap-2 pt-2">
-                  <input
-                    type="text"
-                    placeholder="Nhập ý kiến chỉ đạo khẩn..."
-                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                  />
-                  <button
-                    onClick={handleAddComment}
-                    className="px-3.5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold"
-                  >
-                    Gửi
-                  </button>
-                </div>
+                {/* Comment input — chỉ GĐĐH (CEO Phương) & CHT (Ban chỉ huy) được gửi */}
+                {canChat ? (
+                  <div className="flex gap-2 pt-2">
+                    <input
+                      type="text"
+                      placeholder="Nhập ý kiến chỉ đạo..."
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-xs"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !postingComment) handleAddComment(); }}
+                    />
+                    <button
+                      onClick={handleAddComment}
+                      disabled={postingComment || !commentText.trim()}
+                      className="px-3.5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      {postingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 pt-2 text-[11px] text-slate-400 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+                    <Lock className="w-3.5 h-3.5 shrink-0" />
+                    <span>Chỉ <b>Giám đốc điều hành (CEO Phương)</b> và <b>Ban chỉ huy (CHT)</b> được nhắn tin. Bạn chỉ có thể xem.</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

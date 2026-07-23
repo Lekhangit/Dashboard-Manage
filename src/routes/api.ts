@@ -3,6 +3,7 @@ import multer from 'multer';
 import { createUploadRequest, listUploadRequests, approveUpload, rejectUpload, previewUpload, downloadUpload } from '../controllers/uploadController';
 import { getCategoryData, getCompensation } from '../controllers/dataController';
 import { login, me, changePassword, listUsers, createUser, updateUser } from '../controllers/authController';
+import { listComments, postComment } from '../controllers/commentController';
 import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth';
 import fs from 'fs';
 
@@ -40,6 +41,10 @@ router.get('/uploads/:id/preview', requireAuth, previewUpload);
 router.get('/uploads/:id/download', requireAuth, downloadUpload);
 router.post('/uploads/:id/approve', requireAuth, approveUpload);
 router.post('/uploads/:id/reject', requireAuth, rejectUpload);
+
+// ---- Thảo luận chỉ đạo theo vấn đề (chat: chỉ GĐĐH & CHT được gửi) ----
+router.get('/issues/:issueId/comments', requireAuth, listComments);
+router.post('/issues/:issueId/comments', requireAuth, postComment);
 
 // Chi phí & Lương đãi ngộ: cần quyền view_compensation (đặt TRƯỚC route động /data/:category)
 router.get('/data/compensation', requirePermission('view_compensation'), getCompensation);

@@ -127,4 +127,16 @@ export async function apiDownloadUpload(id: string, filename: string) {
   window.URL.revokeObjectURL(url);
 }
 
+// ---- Thảo luận chỉ đạo theo vấn đề (chat) ----
+export async function apiListComments(issueId: string): Promise<any[]> {
+  const res = await fetch(`/api/issues/${encodeURIComponent(issueId)}/comments`);
+  return jsonOrThrow(res) as any;
+}
+export async function apiPostComment(issueId: string, text: string) {
+  const res = await fetch(`/api/issues/${encodeURIComponent(issueId)}/comments`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }),
+  });
+  return jsonOrThrow(res);
+}
+
 
