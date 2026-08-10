@@ -43,74 +43,50 @@ export const hasPerm = (u: { role: Role; permissions?: string[] } | null | undef
   !!u && (u.role === 'admin' || u.role === 'gddh' || u.role === 'bgd' || (u.permissions || []).includes(key));
 
 export interface Project {
-  id: string;
-  name: string;
-  fullName: string;
-  manager: string;
-  budget: number;
-  spent: number;
-  ipcPlanned: number;
-  ipcActual: number;
-  progressPlanned: number;
-  progressActual: number;
-  startDate: string;
-  endDate: string;
-  status: 'On Track' | 'At Risk' | 'Delayed' | 'Completed';
-  revenue: number;
-  costPlan: number;
-  costActual: number;
-  outstandingBudget: number;
-  variance: number;
+  id: string; name: string; bch: number; revenue: number; avgBch: number;
+  ipc: number; ipcPct: number; budget: number; budgetUsed: number; budgetPct: number;
+  planStart: string; planEnd: string; planDays: number;
+  actualStart: string; actualEnd: string; actualDays: number;
+  progressVsPlanPct: number; bchEvalPct: number; progressPct: number; status: string;
 }
-
 export interface Employee {
-  id: number;
-  department: string;
-  name: string;
-  title: string;
-  description: string;
-  kpi: string;
-  salary: string;
-  insurance: string;
-  allowance: string;
-  cost: string;
-  level: string;
-  segment: string;
-  branch: string;
-  qualification: string;
-  certifications: string;
-  grade: string;
-  status: 'Active' | 'On Leave' | 'Standby';
+  tt: number; department: string; project: string; name: string; title: string;
+  plan: string; jobDesc: string; kpi: string;
+  salary?: string; insurance?: string; allowance?: string; cost?: string;
+  level: string; subsystem: string; field: string; education: string; cchn: string; rank: string;
 }
-
 export interface Contract {
-  id: string;
-  projectId: string;
-  name: string;
-  signDate: string;
-  amount: number;
-  ipcAmount: number;
-  budget: number;
-  startDate: string;
-  endDate: string;
-  content: string;
-  status: 'Pending' | 'Active' | 'Completed';
+  project: string; code: string; issueDate: string; amount: number; budget: number;
+  content: string; note: string; status: string;
 }
-
+export interface Ipc {
+  project: string; ipcNo: string; date: string; content: string; amount: number;
+  vat: number; total: number; actualReceived: number; received: number; remaining: number;
+  status: string; note: string;
+}
+export interface BudgetItem {
+  project: string; pkg: string; category: string; dept: string; desc: string;
+  plan: number; actual: number; variance: number; usagePct: number; status: string;
+}
 export interface Issue {
-  id: string;
-  projectId: string;
-  projectName: string;
-  loggedDate: string;
-  assignee: string;
-  issueText: string;
-  actionText: string;
-  resultText: string;
-  voAmount: number;
-  budget: number;
-  targetComplete: string;
-  actualComplete: string;
-  status: 'Opened' | 'In Progress' | 'Closed';
+  id: string; loggedDate: string; responseDays: string; project: string; assignee: string;
+  problem: string; solution: string; result: string; voBoq: number; budget: number;
+  plannedDate: string; actualDate: string; status: string;
+}
+export interface Todo {
+  tt: number; group: string; project: string; content: string; start: string; end: string;
+  days: number; status: string; important: boolean; urgent: boolean;
+  performer: string; coordinator: string; actual: string; earlyLate: string; note: string;
+}
+export interface Analytics {
+  ipcByProject: { project: string; count: number; value: number }[];
+  budgetByDept: { dept: string; plan: number; actual: number; usagePct: number }[];
+  headcountByLevel: { level: string; count: number }[];
+  headcountByField: { field: string; count: number }[];
+  headcountByProject: { project: string; count: number }[];
+  issueStatus: { status: string; count: number }[];
+  todoStatus: { status: string; count: number }[];
+  totals: { revenue: number; budget: number; budgetUsed: number; ipc: number; headcount: number };
 }
 
 export interface CashFlowMonth {
