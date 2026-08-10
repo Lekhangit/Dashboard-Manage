@@ -228,7 +228,7 @@ export const HeadcountStats: React.FC<HeadcountStatsProps> = ({ employees, resou
                     </div>
 
                     {/* Name beneath bar */}
-                    <div className="absolute top-full mt-2.5 text-[10px] font-bold text-slate-500 whitespace-nowrap text-center transform -rotate-12 group-hover:text-blue-600 group-hover:scale-105 transition-all">
+                    <div className="absolute top-full mt-2.5 text-[10px] font-bold text-slate-500 whitespace-nowrap text-center group-hover:text-blue-600 group-hover:scale-105 transition-all">
                       {item.name}
                     </div>
                   </div>

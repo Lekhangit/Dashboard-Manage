@@ -52,7 +52,7 @@ export const IssueKanban: React.FC<IssueKanbanProps> = ({
   const [comments, setComments] = useState<any[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [postingComment, setPostingComment] = useState(false);
-  const canChat = authUser.role === 'gddh' || authUser.role === 'cht';
+  const canChat = authUser.role === 'gddh' || authUser.role === 'bgd' || authUser.role === 'cht';
 
   const loadComments = async (issueId: string) => {
     setCommentsLoading(true);

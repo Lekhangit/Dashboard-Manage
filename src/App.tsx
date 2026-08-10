@@ -53,6 +53,8 @@ import {
   Menu
 } from 'lucide-react';
 
+const toSlug = (s: string) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/[^a-z0-9]/g, '');
+
 export default function App() {
   // Global States
   const [activeModule, setActiveModule] = useState<string>('dashboard');
@@ -578,7 +580,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-xs space-y-2.5">
                       <div className="flex justify-between items-center">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng Ngân Sách Dự Án</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng giá trị hợp đồng</span>
                         <Briefcase className="w-4 h-4 text-blue-500" />
                       </div>
                       <p className="text-xl font-black text-slate-800 font-mono">{formatVNDShort(financialSummary.totalBudget)}</p>
@@ -758,7 +760,7 @@ export default function App() {
                             <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
                               <td className="py-3 px-4 font-mono font-bold text-slate-400">{emp.id}</td>
                               <td className="py-3 px-4">
-                                <span className="px-2 py-0.5 bg-slate-100 border border-slate-200/50 rounded font-mono font-bold text-slate-600 text-[10px]">
+                                <span className="px-2 py-0.5 bg-slate-100 border border-slate-200/50 rounded font-sans font-bold text-slate-600 text-[10px]">
                                   {emp.department}
                                 </span>
                               </td>
@@ -1158,7 +1160,7 @@ export default function App() {
                     return (
                       <ProjectPortal
                         project={matchedProj}
-                        team={employees.filter(e => e.department.toLowerCase().includes(matchedProj.id) || e.department === 'PMO' || e.department === 'BIM Center')}
+                        team={employees.filter(e => toSlug(e.department).includes(matchedProj.id))}
                         contracts={contracts.filter(c => c.projectId === matchedProj.id)}
                         issues={issues.filter(i => i.projectId === matchedProj.id)}
                         cashflow={cashflowData[matchedProj.id] || []}

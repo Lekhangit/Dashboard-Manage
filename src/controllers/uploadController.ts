@@ -53,8 +53,8 @@ export const createUploadRequest = async (req: AuthedRequest, res: Response) => 
       status: 'pending',
       adminApproved: role === 'admin',
       adminBy: role === 'admin' ? uname : '',
-      gddhApproved: role === 'gddh',
-      gddhBy: role === 'gddh' ? uname : '',
+      gddhApproved: role === 'gddh' || role === 'bgd',
+      gddhBy: (role === 'gddh' || role === 'bgd') ? uname : '',
     });
 
     await applyIfApproved(doc);
@@ -75,15 +75,15 @@ export const listUploadRequests = async (_req: AuthedRequest, res: Response) => 
 export const approveUpload = async (req: AuthedRequest, res: Response) => {
   try {
     const role = req.auth!.role;
-    if (role !== 'admin' && role !== 'gddh') {
-      return res.status(403).json({ error: 'Chỉ Quản trị viên hoặc Giám đốc điều hành được duyệt' });
+    if (role !== 'admin' && role !== 'gddh' && role !== 'bgd') {
+      return res.status(403).json({ error: 'Chỉ Quản trị viên, Giám đốc điều hành hoặc Ban giám đốc được duyệt' });
     }
     const doc: any = await UploadRequestModel.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Không tìm thấy yêu cầu' });
     if (doc.status !== 'pending') return res.status(400).json({ error: 'Yêu cầu đã được xử lý' });
 
     if (role === 'admin') { doc.adminApproved = true; doc.adminBy = req.auth!.username; }
-    if (role === 'gddh') { doc.gddhApproved = true; doc.gddhBy = req.auth!.username; }
+    if (role === 'gddh' || role === 'bgd') { doc.gddhApproved = true; doc.gddhBy = req.auth!.username; }
     await doc.save();
     await applyIfApproved(doc);
     res.json({ status: doc.status, request: publicReq(doc) });
@@ -96,8 +96,8 @@ export const approveUpload = async (req: AuthedRequest, res: Response) => {
 export const rejectUpload = async (req: AuthedRequest, res: Response) => {
   try {
     const role = req.auth!.role;
-    if (role !== 'admin' && role !== 'gddh') {
-      return res.status(403).json({ error: 'Chỉ Quản trị viên hoặc Giám đốc điều hành được từ chối' });
+    if (role !== 'admin' && role !== 'gddh' && role !== 'bgd') {
+      return res.status(403).json({ error: 'Chỉ Quản trị viên, Giám đốc điều hành hoặc Ban giám đốc được từ chối' });
     }
     const doc: any = await UploadRequestModel.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Không tìm thấy yêu cầu' });

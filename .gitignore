@@ -9,3 +9,6 @@ coverage/
 
 # Các thư mục chứa dữ liệu tĩnh/tạm thời
 uploads/
+
+# File Excel nguon (du lieu noi bo - khong day len GitHub)
+public/*.xlsx

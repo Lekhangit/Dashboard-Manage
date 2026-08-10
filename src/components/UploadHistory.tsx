@@ -29,7 +29,7 @@ export const UploadHistory: React.FC<{ authUser: AuthUser; refreshKey?: number; 
   const [searchTerm, setSearchTerm] = useState('');
   const [downloading, setDownloading] = useState(false);
 
-  const canDecide = authUser.role === 'admin' || authUser.role === 'gddh';
+  const canDecide = authUser.role === 'admin' || authUser.role === 'gddh' || authUser.role === 'bgd';
 
   const load = async () => {
     setLoading(true);
@@ -147,7 +147,7 @@ export const UploadHistory: React.FC<{ authUser: AuthUser; refreshKey?: number; 
                 <td className="py-2.5 px-3">
                   <div className="flex flex-col gap-0.5">
                     {appr(r.adminApproved, r.adminBy, 'Admin')}
-                    {appr(r.gddhApproved, r.gddhBy, 'GĐĐH')}
+                    {appr(r.gddhApproved, r.gddhBy, 'GĐĐH/BGD')}
                   </div>
                 </td>
                 <td className="py-2.5 px-3 text-center">{statusBadge(r.status)}</td>
@@ -260,7 +260,7 @@ export const UploadHistory: React.FC<{ authUser: AuthUser; refreshKey?: number; 
                         <span>Trạng thái duyệt:</span>
                         <div className="flex items-center gap-3">
                           {appr(previewData.adminApproved, previewData.adminBy, 'Admin')}
-                          {appr(previewData.gddhApproved, previewData.gddhBy, 'Giám đốc (GĐĐH)')}
+                          {appr(previewData.gddhApproved, previewData.gddhBy, 'Giám đốc')}
                         </div>
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export const UploadHistory: React.FC<{ authUser: AuthUser; refreshKey?: number; 
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-all cursor-pointer"
                     >
                       {busy === previewData.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                      Duyệt ngay ({authUser.role === 'gddh' ? 'Giám đốc' : 'Admin'})
+                      Duyệt ngay ({(authUser.role === 'gddh' || authUser.role === 'bgd') ? 'Giám đốc' : 'Admin'})
                     </button>
 
                     <button

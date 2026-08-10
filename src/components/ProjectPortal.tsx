@@ -247,27 +247,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
               )}
             </div>
 
-            {/* Contracts quick stats */}
-            <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 space-y-3 shadow-xs">
-              <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-blue-500" />
-                Hợp đồng ký kết ({contracts.length})
-              </h3>
-              <div className="divide-y divide-[#E5E7EB]">
-                {contracts.map(cnt => (
-                  <div key={cnt.id} className="py-2.5 first:pt-0 last:pb-0 text-xs space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 truncate max-w-[160px]" title={cnt.name}>{cnt.name}</span>
-                      <span className="font-mono text-[10px] text-slate-400 font-bold">{cnt.id.split('-')[0]}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                      <span>Giá trị:</span>
-                      <span className="font-bold text-slate-700">{formatVNDShort(cnt.amount)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+
           </div>
         </div>
       )}
@@ -844,6 +824,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
             </div>
 
             {/* SECOND TABLE: THEO DÕI CÁC VẤN ĐỀ PHÁT SINH TẠI DỰ ÁN */}
+            {false && (
             <div className="bg-white border border-slate-300 rounded-xl shadow-xs overflow-hidden">
               {/* Maroon Vietnamese Banner */}
               <div className="bg-[#800000] text-white p-5 text-center select-none border-b border-slate-300">
@@ -921,6 +902,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
                 </table>
               </div>
             </div>
+            )}
           </div>
         );
       })()}
@@ -999,7 +981,7 @@ export const ProjectPortal: React.FC<ProjectPortalProps> = ({
                     <span className="text-[10px] text-slate-400 font-bold block mt-1">{emp.title}</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 bg-slate-50 text-slate-500 border border-[#E5E7EB] rounded text-[9px] font-bold font-mono">
+                <span className="px-2 py-0.5 bg-slate-50 text-slate-500 border border-[#E5E7EB] rounded text-[9px] font-bold font-sans">
                   {emp.department}
                 </span>
               </div>

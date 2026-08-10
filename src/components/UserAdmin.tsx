@@ -6,6 +6,7 @@ import { apiListUsers, apiCreateUser, apiUpdateUser } from '../authClient';
 const roleBadgeClass: Record<Role, string> = {
   admin: 'bg-rose-50 text-rose-700 border-rose-200',
   gddh: 'bg-violet-50 text-violet-700 border-violet-200',
+  bgd: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
   cht: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   pm: 'bg-blue-50 text-blue-700 border-blue-200',
   qa: 'bg-emerald-50 text-emerald-700 border-emerald-200',

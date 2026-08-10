@@ -59,7 +59,7 @@ export const publicUser = (u: any) => ({
 
 // admin & Giám đốc điều hành luôn có mọi quyền; người khác cần được cấp cụ thể.
 export const userHasPermission = (u: any, key: string): boolean =>
-  !!u && (u.role === 'admin' || u.role === 'gddh' || (u.permissions || []).includes(key));
+  !!u && (u.role === 'admin' || u.role === 'gddh' || u.role === 'bgd' || (u.permissions || []).includes(key));
 
 // ---------- seed admin mặc định nếu chưa có user nào ----------
 export async function seedAdmin() {
