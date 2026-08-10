@@ -1,5 +1,5 @@
 import xlsx from 'xlsx';
-import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc } from '../../src/services/templateImportService';
+import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget } from '../../src/services/templateImportService';
 
 const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
 const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
@@ -46,6 +46,12 @@ eq('ipc nonzero', ipc.length > 0, true);
 const ipc01 = ipc.find(x => x.project === 'NaFoods' && x.ipcNo === 'IPC-01' && x.amount === 1730288056);
 eq('ipc01 parsed', !!ipc01, true);
 eq('ipc01 vat', ipc01?.vat, 138423044);
+
+const budget = parseBudget(rows('Budget'));
+eq('budget nonzero', budget.length > 0, true);
+const steel = budget.find(b => b.project === 'NaFoods' && b.category === 'Thép kết cấu' && b.plan === 4649991410);
+eq('budget steel parsed', !!steel, true);
+eq('budget steel over/in', (steel?.status.length ?? 0) > 0, true);
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);

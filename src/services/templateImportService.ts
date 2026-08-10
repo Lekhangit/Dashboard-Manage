@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project, Employee, Contract, Ipc } from '../types';
+import { Project, Employee, Contract, Ipc, BudgetItem } from '../types';
 
 type Grid = any[][];
 
@@ -178,6 +178,30 @@ export function parseIpc(rows: Grid): Ipc[] {
       amount, vat: numOr(r[c.vat]), total: numOr(r[c.total]),
       actualReceived: numOr(r[c.actual]), received: numOr(r[c.received]), remaining: numOr(r[c.remaining]),
       status: str(r[c.status]), note: str(r[c.note]),
+    });
+  }
+  return out;
+}
+
+export function parseBudget(rows: Grid): BudgetItem[] {
+  const h = findHeaderRow(rows, ['DỰ ÁN', 'PHÂN LOẠI', 'DIỄN GIẢI']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    project: colOf(hr, 'DỰ ÁN'), pkg: colOf(hr, 'GÓI THẦU'), category: colOf(hr, 'PHÂN LOẠI'),
+    dept: colOf(hr, 'PHÒNG'), desc: colOf(hr, 'DIỄN GIẢI'), plan: colOf(hr, 'KẾ HOẠCH'),
+    actual: colOf(hr, 'THỰC TẾ'), variance: colOf(hr, 'CHÊNH LỆCH'), usage: colOf(hr, 'SỬ DỤNG'),
+    status: colOf(hr, 'TÌNH TRẠNG'),
+  };
+  const out: BudgetItem[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i]; const project = str(r[c.project]), category = str(r[c.category]);
+    if (!project && !category) continue;
+    if (norm(project).includes('total')) continue;
+    out.push({
+      project, pkg: str(r[c.pkg]), category, dept: str(r[c.dept]), desc: str(r[c.desc]),
+      plan: numOr(r[c.plan]), actual: numOr(r[c.actual]), variance: numOr(r[c.variance]),
+      usagePct: numOr(r[c.usage]), status: str(r[c.status]),
     });
   }
   return out;
