@@ -19,12 +19,12 @@ interface Props {
 const trieu = (n: number) => Math.round((n || 0) / 1e6);
 
 export function BudgetDashboard({ budget, issues }: Props) {
-  // 1. Tỷ trọng ngân sách theo hạng mục (theo Thực tế; % trên tổng).
+  // 1. Tỷ trọng ngân sách theo hạng mục (theo Kế hoạch; % trên tổng).
   const byCategory = useMemo(() => {
     const m = new Map<string, number>();
     for (const b of budget) {
       const k = (b.category || '').trim() || 'Chưa phân loại';
-      m.set(k, (m.get(k) || 0) + (b.actual || 0));
+      m.set(k, (m.get(k) || 0) + (b.plan || 0));
     }
     const total = [...m.values()].reduce((s, v) => s + v, 0) || 1;
     return [...m.entries()]
@@ -51,10 +51,10 @@ export function BudgetDashboard({ budget, issues }: Props) {
     return [...m.entries()].map(([label, value]) => ({ label, value, color: color[label.toLowerCase()] || '#94a3b8' }));
   }, [issues]);
 
-  // 4. Tỷ trọng ngân sách theo công trình.
+  // 4. Tỷ trọng ngân sách theo công trình (theo Kế hoạch).
   const byProject: Slice[] = useMemo(() => {
     const m = new Map<string, number>();
-    for (const b of budget) m.set((b.project || '(trống)').trim(), (m.get((b.project || '(trống)').trim()) || 0) + (b.actual || 0));
+    for (const b of budget) m.set((b.project || '(trống)').trim(), (m.get((b.project || '(trống)').trim()) || 0) + (b.plan || 0));
     const palette = ['#1f3864', '#2f75b5', '#a9cce3', '#c0392b', '#5b9bd5', '#94a3b8'];
     return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([label, value], i) => ({ label, value, color: palette[i % palette.length] }));
   }, [budget]);
