@@ -125,7 +125,7 @@ const arcPath = (cx: number, cy: number, r: number, start: number, end: number) 
 
 export interface Slice { label: string; value: number; color: string; }
 
-export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number }> = ({ data, donut, size = 150 }) => {
+export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number }> = ({ data, donut, size = 170 }) => {
   const total = data.reduce((s, d) => s + d.value, 0);
   const cx = size / 2, cy = size / 2, r = size / 2 - 2;
   let acc = 0;
@@ -135,6 +135,7 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
     const end = total ? (acc / total) * 360 : 0;
     return { ...d, start, end, pctNum: total ? (d.value / total) * 100 : 0 };
   });
+  const labelR = donut ? r * 0.79 : r * 0.62;
   return (
     <div className="flex items-center gap-3 flex-wrap justify-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
@@ -143,7 +144,19 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
         ) : segs.map((s) => (
           s.value > 0 && <path key={s.label} d={arcPath(cx, cy, r, s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} />
         ))}
-        {donut && <circle cx={cx} cy={cy} r={r * 0.58} fill="#fff" />}
+        {donut && <circle cx={cx} cy={cy} r={r * 0.55} fill="#fff" />}
+        {/* Data labels on slices: "value, pct%" */}
+        {total > 0 && segs.map((s) => {
+          if (s.pctNum < 4) return null;
+          const mid = (s.start + s.end) / 2;
+          const p = polar(cx, cy, labelR, mid);
+          return (
+            <text key={`l-${s.label}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
+              fontSize={9} fontWeight={700} fill="#fff" style={{ pointerEvents: 'none' }}>
+              {s.value} · {Math.round(s.pctNum)}%
+            </text>
+          );
+        })}
       </svg>
       <div className="space-y-1">
         {segs.map((s) => (
@@ -151,6 +164,35 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: s.color }} />
             <span className="min-w-[70px]">{s.label}</span>
             <span className="text-slate-400">{Math.round(s.pctNum)}% · {s.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ---- Horizontal stacked bar (e.g. ageing buckets per assignee) ----
+export const HStackedBar: React.FC<{
+  categories: string[];
+  series: Series[];  // each series = one stacked segment colour, values per category
+}> = ({ categories, series }) => {
+  const totals = categories.map((_, ci) => series.reduce((s, se) => s + (se.values[ci] || 0), 0));
+  const max = Math.max(1, ...totals);
+  return (
+    <div>
+      <Legend items={series} className="mb-2" />
+      <div className="space-y-1.5">
+        {categories.map((cat, ci) => (
+          <div key={ci} className="flex items-center gap-2">
+            <span className="w-28 shrink-0 text-[10px] font-semibold text-slate-500 text-right truncate">{cat}</span>
+            <div className="flex-1 flex items-center h-3.5 rounded-sm overflow-hidden bg-slate-50">
+              {series.map((s) => {
+                const v = s.values[ci] || 0;
+                if (v <= 0) return null;
+                return <div key={s.name} style={{ width: `${(v / max) * 100}%`, background: s.color }} className="h-full" title={`${s.name}: ${v}`} />;
+              })}
+            </div>
+            <span className="w-6 text-[10px] font-bold text-slate-500">{totals[ci] || ''}</span>
           </div>
         ))}
       </div>

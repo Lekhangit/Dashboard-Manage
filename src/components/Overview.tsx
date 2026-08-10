@@ -51,8 +51,10 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
   const headcount = employees.length;
   const salaryFund = employees.reduce((s, e) => s + (parseFloat(String(e.salary || '').replace(/[^0-9.\-]/g, '')) || 0), 0);
   const cchnCount = employees.filter((e) => (e.cchn || '').trim()).length;
-  // "Tổng doanh thu" = tổng DOANH THU các dự án (khớp với các cột Doanh thu bên dưới).
-  const totalRevenue = analytics?.totals.revenue ?? projects.reduce((s, p) => s + (p.revenue || 0), 0);
+  // "Tổng doanh thu" = tổng giá trị hợp đồng đã ký (như dashboard Excel).
+  const totalRevenue = contracts
+    .filter((c) => norm(c.status).includes('da ky'))
+    .reduce((s, c) => s + (c.amount || 0), 0);
 
   // ---- Headcount by field / level (Nhân sự + Chứng chỉ) ----
   const groupNS = (key: (e: Employee) => string) => {

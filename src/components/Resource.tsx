@@ -89,6 +89,22 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
 
   const alignClass = (a?: 'left' | 'right' | 'center') => (a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '');
 
+  // Total row: headcount + summed compensation columns (when visible).
+  const sumComp = (f: 'salary' | 'insurance' | 'allowance' | 'cost') =>
+    filtered.reduce((s, e) => s + (parseFloat(String((e as any)[f] || '').replace(/[^0-9.\-]/g, '')) || 0), 0);
+  const moneyNum = (n: number) => (n ? Math.round(n).toLocaleString('vi-VN') + ' đ' : '—');
+  const footerFor = (header: string): React.ReactNode => {
+    switch (header) {
+      case 'TT': return 'Total';
+      case 'Họ và tên': return `${filtered.length} người`;
+      case 'Lương': return moneyNum(sumComp('salary'));
+      case 'BH+YT': return moneyNum(sumComp('insurance'));
+      case 'Phụ cấp': return moneyNum(sumComp('allowance'));
+      case 'Chi phí': return moneyNum(sumComp('cost'));
+      default: return '';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filter bar */}
@@ -153,6 +169,15 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
                 </tr>
               )}
             </tbody>
+            {filtered.length > 0 && (
+              <tfoot>
+                <tr className="bg-slate-100 font-black text-slate-800 border-t-2 border-slate-300">
+                  {columns.map((c, ci) => (
+                    <td key={ci} className={`py-3 px-4 ${alignClass(c.align)}`}>{footerFor(c.header)}</td>
+                  ))}
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

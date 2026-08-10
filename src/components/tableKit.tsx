@@ -74,11 +74,12 @@ export interface Column<T> {
 const alignClass = (a?: 'left' | 'right' | 'center') =>
   a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '';
 
-export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel }: {
+export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer }: {
   columns: Column<T>[];
   rows: T[];
   minWidthClass: string;
   emptyLabel: string;
+  footer?: React.ReactNode[]; // one cell per column; renders a Total row
 }) {
   return (
     <div className="overflow-x-auto">
@@ -102,6 +103,15 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel }: {
             <tr><td colSpan={columns.length} className="py-10 text-center text-slate-400 font-medium">{emptyLabel}</td></tr>
           )}
         </tbody>
+        {footer && rows.length > 0 && (
+          <tfoot>
+            <tr className="bg-slate-100 font-black text-slate-800 border-t-2 border-slate-300">
+              {columns.map((c, ci) => (
+                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)}`}>{footer[ci]}</td>
+              ))}
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
   );

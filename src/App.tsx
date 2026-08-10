@@ -19,6 +19,7 @@ import { Todos } from './components/Todos';
 import { Compensation } from './components/Compensation';
 import { DataAnalysis } from './components/DataAnalysis';
 import { ProjectsEffectiveness } from './components/ProjectsEffectiveness';
+import { BudgetDashboard } from './components/BudgetDashboard';
 import {
   apiMe, clearToken, getToken,
   apiGetProjects, apiGetEmployees, apiGetContracts, apiGetIpc, apiGetBudget, apiGetIssues, apiGetTodos, apiGetAnalytics
@@ -74,6 +75,7 @@ export default function App() {
   const [activeModule, setActiveModule] = useState<string>('overview');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false); // mobile drawer
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [dashboardTab, setDashboardTab] = useState<'project' | 'budget'>('project');
   const [showChangePw, setShowChangePw] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error'; visible: boolean } | null>(null);
 
@@ -250,30 +252,6 @@ export default function App() {
               );
             })}
           </nav>
-
-          {/* Navigation Projects (quick links) */}
-          <div className="p-3 space-y-1 border-t border-[#1F2937]">
-            <span className="block text-[9px] uppercase font-extrabold text-[#6B7280] px-3 mb-2 tracking-widest">Danh mục công trình</span>
-            {projects.map((proj) => {
-              const isActive = selectedProjectId === proj.id;
-              return (
-                <button
-                  key={proj.id}
-                  onClick={() => { setSelectedProjectId(proj.id); setSidebarOpen(false); }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${isActive
-                      ? 'bg-[#1F2937] text-white border-l-4 border-emerald-500 shadow-sm'
-                      : 'text-[#9CA3AF] hover:text-white hover:bg-[#1F2937]/50'
-                    }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span className="truncate max-w-[140px]">{proj.name}</span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#6B7280]" />
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* User Account Info Bottom */}
@@ -354,7 +332,22 @@ export default function App() {
               ) : (
                 <>
                   {activeModule === 'overview' && (
-                    <Overview projects={projects} employees={employees} analytics={analytics} issues={issues} contracts={contracts} />
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        {([['project', 'Khối Dự Án'], ['budget', 'Ngân Sách Dự Án']] as const).map(([k, label]) => (
+                          <button
+                            key={k}
+                            onClick={() => setDashboardTab(k)}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${dashboardTab === k ? 'bg-[#8b1a1a] text-white' : 'bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-800'}`}
+                          >
+                            Dashboard — {label}
+                          </button>
+                        ))}
+                      </div>
+                      {dashboardTab === 'project'
+                        ? <Overview projects={projects} employees={employees} analytics={analytics} issues={issues} contracts={contracts} />
+                        : <BudgetDashboard budget={budget} issues={issues} projects={projects} />}
+                    </div>
                   )}
                   {activeModule === 'projects' && (
                     <ProjectsEffectiveness projects={projects} onSelect={setSelectedProjectId} />
@@ -364,7 +357,7 @@ export default function App() {
                   {activeModule === 'ipc' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="ipc" />}
                   {activeModule === 'analytics' && <DataAnalysis analytics={analytics} projects={projects} budget={budget} />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
-                  {activeModule === 'issues' && <IssueBoard issues={issues} projects={projects} authUser={authUser} />}
+                  {activeModule === 'issues' && <IssueBoard issues={issues} todos={todos} projects={projects} authUser={authUser} />}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}
                   {activeModule === 'compensation' && (
                     hasPerm(authUser, 'view_compensation')

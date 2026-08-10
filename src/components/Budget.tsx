@@ -62,7 +62,18 @@ export function Budget({ budget }: Props) {
         title="Quản Lý Ngân Sách Dự Án"
         right={<ProjectFilter value={proj} onChange={setProj} options={projectOptions} />}
       >
-        <DataTable columns={cols} rows={rows} minWidthClass="min-w-[1000px]" emptyLabel="Chưa có dữ liệu ngân sách." />
+        <DataTable
+          columns={cols}
+          rows={rows}
+          minWidthClass="min-w-[1000px]"
+          emptyLabel="Chưa có dữ liệu ngân sách."
+          footer={(() => {
+            const plan = rows.reduce((s, r) => s + (r.plan || 0), 0);
+            const actual = rows.reduce((s, r) => s + (r.actual || 0), 0);
+            const variance = rows.reduce((s, r) => s + (r.variance || 0), 0);
+            return ['Total', '', '', '', '', money(plan), money(actual), money(variance), pct(plan ? Math.round(actual / plan * 100) : 0), ''];
+          })()}
+        />
       </SectionCard>
 
       <SectionCard title="Ngân Sách Theo Phòng Ban">
