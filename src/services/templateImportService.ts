@@ -282,8 +282,9 @@ export function computeAnalytics(d: Bundle): Analytics {
   }, new Map<string, { count: number; value: number }>())]
     .map(([project, g]) => ({ project, count: g.count, value: g.value }));
   const budgetByDept = [...d.budget.reduce((m, x) => {
-    const g = m.get(x.dept) || { plan: 0, actual: 0 };
-    g.plan += x.plan; g.actual += x.actual; m.set(x.dept || '(trống)', g); return m;
+    const dept = x.dept || '(trống)';
+    const g = m.get(dept) || { plan: 0, actual: 0 };
+    g.plan += x.plan; g.actual += x.actual; m.set(dept, g); return m;
   }, new Map<string, { plan: number; actual: number }>())]
     .map(([dept, g]) => ({ dept, plan: g.plan, actual: g.actual, usagePct: g.plan ? Math.round(g.actual / g.plan * 100) : 0 }));
   return {

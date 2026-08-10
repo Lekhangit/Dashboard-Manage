@@ -73,5 +73,12 @@ eq('analytics headcount', analytics.totals.headcount, emps.length);
 eq('analytics ipcByProject has nafoods', analytics.ipcByProject.some(x => x.project === 'NaFoods'), true);
 eq('analytics issueStatus nonempty', analytics.issueStatus.length > 0, true);
 
+const _synthEmptyDept = computeAnalytics({ projects: [], employees: [], contracts: [], ipc: [],
+  budget: [ {project:'X',pkg:'',category:'a',dept:'',desc:'',plan:10,actual:5,variance:5,usagePct:50,status:''},
+            {project:'X',pkg:'',category:'b',dept:'',desc:'',plan:20,actual:8,variance:12,usagePct:40,status:''} ],
+  issues: [], todos: [] } as any);
+const _bd = _synthEmptyDept.budgetByDept.find(d => d.dept === '(trống)');
+eq('budgetByDept sums empty-dept rows', [_bd?.plan, _bd?.actual], [30, 13]);
+
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);
