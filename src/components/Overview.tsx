@@ -1,195 +1,176 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * DASHBOARD - KHỐI DỰ ÁN. Layout/charts mirror the source Excel dashboard.
+ * Every value is derived from real parsed data (projects/employees/issues/
+ * contracts/analytics) — nothing is fabricated; empties render as 0/'—'.
  */
+import React, { useMemo } from 'react';
+import { Users2, Coins, BadgeCheck, FolderKanban, TrendingUp } from 'lucide-react';
+import { Project, Employee, Issue, Contract, Analytics } from '../types';
+import { VBarGroup, HBarGroup, PieChart, Slice } from './charts';
+import { SectionCard } from './tableKit';
 
-import React from 'react';
-import {
-  TrendingUp, Wallet, PiggyBank, FileText, Users2,
-  LayoutDashboard, BarChart3,
-} from 'lucide-react';
-import { Project, Employee, Analytics, Issue, Todo } from '../types';
-
-interface OverviewProps {
+interface Props {
   projects: Project[];
   employees: Employee[];
-  analytics: Analytics | null;
   issues: Issue[];
-  todos: Todo[];
+  contracts?: Contract[];
+  analytics: Analytics | null;
 }
 
-// ---- Shared formatting helpers (no fabricated values) ----
-const money = (n?: number | null): string => {
-  if (n === null || n === undefined || n === 0) return '—';
-  return n.toLocaleString('vi-VN') + ' đ';
-};
+const norm = (s: any) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+const trieu = (n: number) => Math.round((n || 0) / 1e6);         // -> triệu đồng
+const fullVND = (n: number) => (n || 0).toLocaleString('vi-VN');
 
-const pct = (n?: number | null): string => {
-  if (n === null || n === undefined) return '—';
-  return `${n}%`;
-};
-
-const count = (n?: number | null): string => {
-  if (n === null || n === undefined || n === 0) return '—';
-  return n.toLocaleString('vi-VN');
-};
-
-const isOnTrack = (status: string) => /trong/i.test(status);
-const isLate = (status: string) => /trễ/i.test(status);
-
-const statusPillClass = (status: string): string => {
-  if (isOnTrack(status)) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if (isLate(status)) return 'bg-rose-50 text-rose-700 border-rose-200';
-  return 'bg-amber-50 text-amber-700 border-amber-200';
-};
-
-// ---- KPI stat card ----
-const StatCard: React.FC<{ icon: any; label: string; value: string; accent?: string }> = ({ icon: Icon, label, value, accent }) => (
+// KPI card matching the source dashboard's boxed metric look.
+const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; sub?: string }> = ({ icon: Icon, label, value, accent, sub }) => (
   <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-4 flex items-center gap-3">
-    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#104e8b]/10 text-[#104e8b]">
-      <Icon className="w-5 h-5" />
+    <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
+      <Icon className="w-6 h-6" />
     </div>
     <div className="min-w-0">
-      <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400 truncate">{label}</span>
-      <span className={`block text-lg font-black truncate ${accent || 'text-slate-800'}`}>{value}</span>
+      <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400">{label}</span>
+      <span className="block text-xl font-black leading-tight" style={{ color: accent }}>{value}</span>
+      {sub && <span className="block text-[10px] text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>
 );
 
-// ---- Simple CSS-width horizontal bar list (no chart library) ----
-const BarList: React.FC<{
-  title: string;
-  icon: any;
-  items: { label: string; value: number }[];
-  formatValue: (n: number) => string;
-  barClass: string;
-}> = ({ title, icon: Icon, items, formatValue, barClass }) => {
-  const max = items.length ? Math.max(...items.map(i => i.value)) : 0;
+const ChartCard: React.FC<{ title: string; children: React.ReactNode; note?: string }> = ({ title, children, note }) => (
+  <SectionCard title={title} right={note ? <span className="text-[10px] font-semibold text-slate-400">{note}</span> : undefined}>
+    <div className="p-4">{children}</div>
+  </SectionCard>
+);
+
+export function Overview({ projects, employees, issues, contracts = [], analytics }: Props) {
+  const pNames = projects.map((p) => p.name);
+
+  // ---- KPIs ----
+  const headcount = employees.length;
+  const salaryFund = employees.reduce((s, e) => s + (parseFloat(String(e.salary || '').replace(/[^0-9.\-]/g, '')) || 0), 0);
+  const cchnCount = employees.filter((e) => (e.cchn || '').trim()).length;
+  // "Tổng doanh thu" = tổng DOANH THU các dự án (khớp với các cột Doanh thu bên dưới).
+  const totalRevenue = analytics?.totals.revenue ?? projects.reduce((s, p) => s + (p.revenue || 0), 0);
+
+  // ---- Headcount by field / level (Nhân sự + Chứng chỉ) ----
+  const groupNS = (key: (e: Employee) => string) => {
+    const m = new Map<string, { ns: number; cc: number }>();
+    for (const e of employees) {
+      const k = (key(e) || '').trim() || 'Khác';
+      const g = m.get(k) || { ns: 0, cc: 0 };
+      g.ns += 1;
+      if ((e.cchn || '').trim()) g.cc += 1;
+      m.set(k, g);
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'vi'));
+  };
+  const byField = useMemo(() => groupNS((e) => e.subsystem), [employees]);
+  const byLevel = useMemo(() => groupNS((e) => e.level), [employees]);
+
+  // ---- Issue status donut ----
+  const issueColor: Record<string, string> = { closed: '#1f3864', opened: '#5b9bd5', pending: '#a9cce3', ongoing: '#c0392b' };
+  const issueSlices: Slice[] = (analytics?.issueStatus || []).map((s) => ({
+    label: s.status || '(trống)', value: s.count, color: issueColor[norm(s.status)] || '#94a3b8',
+  }));
+
+  // ---- Contract status pie ----
+  const contractAgg = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of contracts) {
+      const k = (c.status || '').trim() || '(chưa rõ)';
+      m.set(k, (m.get(k) || 0) + 1);
+    }
+    const palette = ['#1f3864', '#5b9bd5', '#a9cce3', '#c0392b', '#94a3b8'];
+    return [...m.entries()].map(([label, value], i) => ({ label, value, color: palette[i % palette.length] } as Slice));
+  }, [contracts]);
+
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
-      <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex items-center gap-2">
-        <Icon className="w-4 h-4 text-slate-500" />
-        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">{title}</h3>
+    <div className="space-y-4">
+      {/* Title bar */}
+      <div className="bg-[#8b1a1a] text-white rounded-xl shadow-xs px-5 py-3">
+        <h2 className="text-base font-black uppercase tracking-wide text-center">Dashboard - Khối Dự Án</h2>
       </div>
-      <div className="p-4 space-y-3">
-        {items.length === 0 && (
-          <div className="py-6 text-center text-slate-400 text-xs">Chưa có dữ liệu.</div>
-        )}
-        {items.map((item, idx) => {
-          const width = max > 0 ? (item.value / max) * 100 : 0;
-          return (
-            <div key={idx} className="space-y-1">
-              <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="font-semibold text-slate-700 truncate" title={item.label}>{item.label}</span>
-                <span className="font-mono font-bold text-slate-500 shrink-0">{item.value > 0 ? formatValue(item.value) : '—'}</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                <div className={`${barClass} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${width}%` }} />
-              </div>
-            </div>
-          );
-        })}
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <Kpi icon={Users2} label="Số lượng nhân sự" value={headcount.toLocaleString('vi-VN')} accent="#104e8b" />
+        <Kpi icon={Coins} label="Tổng quỹ lương" value={`${(salaryFund / 1e9).toFixed(2)} tỷ`} accent="#7c3aed" sub="đồng" />
+        <Kpi icon={BadgeCheck} label="S.Lg CCHN" value={cchnCount.toLocaleString('vi-VN')} accent="#0ea5e9" />
+        <Kpi icon={FolderKanban} label="Dự án" value={projects.length.toLocaleString('vi-VN')} accent="#0d9488" />
+        <Kpi icon={TrendingUp} label="Tổng doanh thu" value={fullVND(totalRevenue)} accent="#104e8b" />
+      </div>
+
+      {/* Charts grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard title="Theo Lĩnh Vực Hoạt Động">
+          <VBarGroup
+            categories={byField.map((f) => f[0])}
+            series={[
+              { name: 'Nhân sự', color: '#2563eb', values: byField.map((f) => f[1].ns) },
+              { name: 'Chứng chỉ', color: '#8b1a1a', values: byField.map((f) => f[1].cc) },
+            ]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Theo Cấp Bậc">
+          <VBarGroup
+            categories={byLevel.map((f) => f[0])}
+            series={[
+              { name: 'Nhân sự', color: '#2563eb', values: byLevel.map((f) => f[1].ns) },
+              { name: 'Chứng chỉ', color: '#8b1a1a', values: byLevel.map((f) => f[1].cc) },
+            ]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Yêu Cầu Cần Xử Lý">
+          <PieChart data={issueSlices} donut />
+        </ChartCard>
+
+        <ChartCard title="Hiệu Quả Ban Chỉ Huy" note="ĐVT: triệu đồng">
+          <VBarGroup
+            categories={pNames}
+            series={[{ name: 'BQ BCH', color: '#c0392b', values: projects.map((p) => trieu(p.avgBch)) }]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Tiến Độ (số ngày)">
+          <HBarGroup
+            categories={pNames}
+            series={[
+              { name: 'Thực tế', color: '#1f3864', values: projects.map((p) => p.actualDays || 0) },
+              { name: 'Kế hoạch', color: '#f4a6a6', values: projects.map((p) => p.planDays || 0) },
+            ]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Hợp Đồng - Phụ Lục - VO">
+          <PieChart data={contractAgg} />
+        </ChartCard>
+
+        <div className="lg:col-span-2">
+          <ChartCard title="Doanh Thu & IPC" note="ĐVT: triệu đồng">
+            <VBarGroup
+              categories={pNames}
+              series={[
+                { name: 'Doanh thu', color: '#5b9bd5', values: projects.map((p) => trieu(p.revenue)) },
+                { name: 'IPC', color: '#8b1a1a', values: projects.map((p) => trieu(p.ipc)) },
+              ]}
+            />
+          </ChartCard>
+        </div>
+
+        <ChartCard title="Ngân Sách" note="ĐVT: triệu đồng">
+          <VBarGroup
+            categories={pNames}
+            series={[
+              { name: 'Ngân sách', color: '#5b9bd5', values: projects.map((p) => trieu(p.budget)) },
+              { name: 'Đã sử dụng', color: '#1f3864', values: projects.map((p) => trieu(p.budgetUsed)) },
+            ]}
+          />
+        </ChartCard>
       </div>
     </div>
   );
-};
-
-export const Overview: React.FC<OverviewProps> = ({ projects, analytics }) => {
-  const totals = analytics?.totals;
-  const ipcByProject = analytics?.ipcByProject || [];
-  const headcountByProject = analytics?.headcountByProject || [];
-
-  return (
-    <div className="space-y-6">
-      {/* KPI strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard icon={TrendingUp} label="Tổng doanh thu" value={money(totals?.revenue)} accent="text-[#104e8b]" />
-        <StatCard icon={Wallet} label="Tổng ngân sách" value={money(totals?.budget)} />
-        <StatCard icon={PiggyBank} label="Đã sử dụng" value={money(totals?.budgetUsed)} />
-        <StatCard icon={FileText} label="IPC" value={money(totals?.ipc)} />
-        <StatCard icon={Users2} label="Nhân sự" value={count(totals?.headcount)} />
-      </div>
-
-      {/* Projects table */}
-      <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex items-center gap-2">
-          <LayoutDashboard className="w-4 h-4 text-slate-500" />
-          <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Danh mục dự án ({projects.length})</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs min-w-[960px]">
-            <thead>
-              <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100">
-                <th className="py-3 px-4">Dự án</th>
-                <th className="py-3 px-4 text-center">BCH</th>
-                <th className="py-3 px-4 text-right">Doanh thu</th>
-                <th className="py-3 px-4 text-right">IPC</th>
-                <th className="py-3 px-4">Ngân sách / Đã dùng / %</th>
-                <th className="py-3 px-4">Tiến độ</th>
-                <th className="py-3 px-4 text-center">Tình trạng</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium">
-              {projects.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-800 max-w-[220px] truncate" title={p.name}>{p.name}</td>
-                  <td className="py-3 px-4 text-center font-mono text-slate-600">{count(p.bch)}</td>
-                  <td className="py-3 px-4 text-right font-mono font-bold text-slate-700">{money(p.revenue)}</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-mono font-bold text-slate-700">{money(p.ipc)}</span>
-                    <span className="block text-[10px] text-slate-400 font-mono">{pct(p.ipcPct)}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-[11px] font-mono text-slate-600">
-                      <span>{money(p.budget)}</span>
-                      <span className="text-slate-300 mx-1">/</span>
-                      <span>{money(p.budgetUsed)}</span>
-                      <span className="ml-1 font-bold text-slate-500">({pct(p.budgetPct)})</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden mt-1">
-                      <div className="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${Math.min(p.budgetPct || 0, 100)}%` }} />
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2 min-w-[120px]">
-                      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-[#104e8b] h-1.5 rounded-full transition-all duration-500" style={{ width: `${Math.min(p.progressPct || 0, 100)}%` }} />
-                      </div>
-                      <span className="font-mono text-[11px] text-slate-500 font-bold w-9 text-right">{pct(p.progressPct)}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusPillClass(p.status || '')}`}>
-                      {p.status || '—'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {projects.length === 0 && (
-                <tr><td colSpan={7} className="py-10 text-center text-slate-400 font-medium">Chưa có dữ liệu dự án.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Two CSS-width bar lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BarList
-          title="Giá trị IPC theo dự án"
-          icon={FileText}
-          items={ipcByProject.map(i => ({ label: i.project, value: i.value }))}
-          formatValue={(n) => money(n)}
-          barClass="bg-[#104e8b]"
-        />
-        <BarList
-          title="Nhân sự theo dự án"
-          icon={BarChart3}
-          items={headcountByProject.map(h => ({ label: h.project, value: h.count }))}
-          formatValue={(n) => count(n)}
-          barClass="bg-emerald-500"
-        />
-      </div>
-    </div>
-  );
-};
+}

@@ -347,7 +347,7 @@ export default function App() {
               ) : (
                 <>
                   {activeModule === 'overview' && (
-                    <Overview projects={projects} employees={employees} analytics={analytics} issues={issues} todos={todos} />
+                    <Overview projects={projects} employees={employees} analytics={analytics} issues={issues} contracts={contracts} />
                   )}
                   {activeModule === 'projects' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
