@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://leminhduykhang_db_user:23052004@datamanage.ziefw8j.mongodb.net/DashboardManage?retryWrites=true&w=majority&appName=DataManage';
+const DEFAULT_URI = 'mongodb+srv://leminhduykhang_db_user:23052004@datamanage.ziefw8j.mongodb.net/DashboardManage?retryWrites=true&w=majority&appName=DataManage';
 
 export const connectDB = async () => {
+  // Read the URI at call time so a .env value injected during startup is honored
+  // (a module-load-time const can be evaluated before dotenv finishes injecting).
+  const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_URI;
   try {
     await mongoose.connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 5000
