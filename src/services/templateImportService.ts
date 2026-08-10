@@ -3,6 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
+import { Project } from '../types';
 
 type Grid = any[][];
 
@@ -70,4 +71,36 @@ export function colOf(header: any[], label: string, fallback = -1): number {
   let i = cells.indexOf(w);
   if (i === -1) i = cells.findIndex((c) => c.includes(w) && w.length > 2);
   return i === -1 ? fallback : i;
+}
+
+export function parseProjects(rows: Grid): Project[] {
+  const h = findHeaderRow(rows, ['DỰ ÁN', 'DOANH THU', 'NGÂN SÁCH']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    name: colOf(hr, 'DỰ ÁN'), bch: colOf(hr, 'BCH'), revenue: colOf(hr, 'DOANH THU'),
+    avgBch: colOf(hr, 'BQ BCH'), ipc: colOf(hr, 'IPC'), ipcPct: colOf(hr, '%IPC'),
+    budget: colOf(hr, 'NGÂN SÁCH'), used: colOf(hr, 'ĐÃ SỬ DỤNG'), ns: colOf(hr, '%NS'),
+    planStart: colOf(hr, 'KH B.ĐẦU'), planEnd: colOf(hr, 'KH K.THÚC'),
+    ttStart: colOf(hr, 'TT B.ĐẦU'), ttEnd: colOf(hr, 'TT K.THÚC'),
+    vsPlan: colOf(hr, '%TT/KH'), bchEval: colOf(hr, '% BCH ĐÁNH GIÁ'),
+    prog: colOf(hr, '% T.ĐỘ'), status: colOf(hr, 'TÌNH TRẠNG'),
+  };
+  const planDays = c.planEnd + 1;   // 'KẾ HOẠCH' (số ngày) ngay sau KH K.THÚC
+  const actualDays = c.ttEnd + 1;   // 'THỰC TẾ' (số ngày) ngay sau TT K.THÚC
+  const out: Project[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i]; const name = str(r[c.name]);
+    if (!name || norm(name).includes('total')) continue;
+    out.push({
+      id: slug(name), name, bch: numOr(r[c.bch]), revenue: numOr(r[c.revenue]),
+      avgBch: numOr(r[c.avgBch]), ipc: numOr(r[c.ipc]), ipcPct: numOr(r[c.ipcPct]),
+      budget: numOr(r[c.budget]), budgetUsed: numOr(r[c.used]), budgetPct: numOr(r[c.ns]),
+      planStart: fmtDate(r[c.planStart]), planEnd: fmtDate(r[c.planEnd]), planDays: numOr(r[planDays]),
+      actualStart: fmtDate(r[c.ttStart]), actualEnd: fmtDate(r[c.ttEnd]), actualDays: numOr(r[actualDays]),
+      progressVsPlanPct: numOr(r[c.vsPlan]), bchEvalPct: numOr(r[c.bchEval]),
+      progressPct: numOr(r[c.prog]), status: str(r[c.status]),
+    });
+  }
+  return out;
 }

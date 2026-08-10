@@ -1,5 +1,9 @@
 import xlsx from 'xlsx';
 import { norm, slug, numOr, fmtDate } from '../../src/services/templateImportService';
+import { parseProjects } from '../../src/services/templateImportService';
+
+const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
+const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
 
 let fails = 0;
 const eq = (name: string, got: any, want: any) => {
@@ -15,6 +19,14 @@ eq('numOr comma', numOr('  100,694,000,000 '), 100694000000);
 eq('numOr paren negative', numOr('(1,429,217,934)'), -1429217934);
 eq('numOr dash empty', numOr(' - '), 0);
 eq('fmtDate local no shift', fmtDate(new Date(2026, 2, 4)), '2026-03-04');
+
+const projects = parseProjects(rows('Project'));
+eq('projects count', projects.length, 6);
+eq('project ids', projects.map(p => p.id).sort(), ['charmming','nafoods','phuhuu','promea','salacia','ttikitchen']);
+const naf = projects.find(p => p.id === 'nafoods')!;
+eq('nafoods bch', naf.bch, 12);
+eq('nafoods budget', naf.budget, 95952728146);
+eq('nafoods status nonempty', naf.status.length > 0, true);
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);
