@@ -341,6 +341,7 @@ export default function App() {
                   budget={budget.filter(b => b.project === selectedProject.name)}
                   issues={issues.filter(i => i.project === selectedProject.name)}
                   todos={todos.filter(t => t.project === selectedProject.name)}
+                  authUser={authUser}
                   onBack={() => setSelectedProjectId(null)}
                 />
               ) : (
