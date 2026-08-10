@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
-  IssueModel, TodoModel, ActivityLogModel, UserModel } from '../models';
+  IssueModel, TodoModel, ActivityLogModel, UserModel, PivotModel } from '../models';
 import { userHasPermission } from '../services/authService';
 import { computeAnalytics } from '../services/templateImportService';
 
@@ -8,7 +8,7 @@ import { computeAnalytics } from '../services/templateImportService';
 const MODELS: Record<string, any> = {
   projects: ProjectModel, employees: EmployeeModel, contracts: ContractModel,
   ipc: IpcModel, budget: BudgetItemModel, issues: IssueModel, todos: TodoModel,
-  activity: ActivityLogModel,
+  activity: ActivityLogModel, pivot: PivotModel,
 };
 // Các cột lương/chi phí nhạy cảm — chỉ lộ qua endpoint /data/compensation (có phân quyền).
 const COMP_FIELDS = ['salary', 'insurance', 'allowance', 'cost'];

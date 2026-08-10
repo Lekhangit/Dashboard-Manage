@@ -26,14 +26,14 @@ const fullVND = (n: number) => (n || 0).toLocaleString('vi-VN');
 
 // KPI card matching the source dashboard's boxed metric look.
 const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; sub?: string }> = ({ icon: Icon, label, value, accent, sub }) => (
-  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-4 flex items-center gap-3">
-    <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
-      <Icon className="w-6 h-6" />
+  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-5 flex items-center gap-4">
+    <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
+      <Icon className="w-8 h-8" />
     </div>
     <div className="min-w-0">
-      <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400">{label}</span>
-      <span className="block text-xl font-black leading-tight" style={{ color: accent }}>{value}</span>
-      {sub && <span className="block text-[10px] text-slate-400 font-semibold">{sub}</span>}
+      <span className="block text-xs uppercase font-extrabold tracking-wider text-slate-400">{label}</span>
+      <span className="block text-2xl xl:text-3xl font-black leading-tight" style={{ color: accent }}>{value}</span>
+      {sub && <span className="block text-xs text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>
 );

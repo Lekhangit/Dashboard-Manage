@@ -355,7 +355,7 @@ export default function App() {
                   {activeModule === 'resource' && <Resource employees={employees} projects={projects} authUser={authUser} />}
                   {activeModule === 'contracts' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="contracts" />}
                   {activeModule === 'ipc' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="ipc" />}
-                  {activeModule === 'analytics' && <DataAnalysis analytics={analytics} projects={projects} budget={budget} />}
+                  {activeModule === 'analytics' && <DataAnalysis />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
                   {activeModule === 'issues' && <IssueBoard issues={issues} todos={todos} projects={projects} authUser={authUser} />}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}

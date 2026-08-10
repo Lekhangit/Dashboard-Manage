@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useMemo, useState } from 'react';
-import { Flame, Star } from 'lucide-react';
+import { CheckCircle2, Star } from 'lucide-react';
 import { Todo, Project } from '../types';
 import { DataTable, Column, txt, StatusPill, StatCard, SectionCard, ProjectFilter } from './tableKit';
 
@@ -43,7 +43,7 @@ export function Todos({ todos }: Props) {
       header: 'QT/KC', align: 'center', render: r => (
         <div className="flex items-center justify-center gap-1">
           {r.important && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" aria-label="Quan trọng" />}
-          {r.urgent && <Flame className="w-3.5 h-3.5 text-rose-500" aria-label="Khẩn cấp" />}
+          {r.urgent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" aria-label="Khẩn cấp" />}
           {!r.important && !r.urgent && <span className="text-slate-300">—</span>}
         </div>
       ),
@@ -58,8 +58,8 @@ export function Todos({ todos }: Props) {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard icon={Star} label="Quan trọng" value={String(importantCount)} accent="text-amber-600" />
-        <StatCard icon={Flame} label="Khẩn cấp" value={String(urgentCount)} accent="text-rose-600" />
-        <StatCard icon={Flame} label="Quan trọng & Khẩn cấp" value={String(bothCount)} accent="text-[#104e8b]" />
+        <StatCard icon={CheckCircle2} label="Khẩn cấp" value={String(urgentCount)} accent="text-rose-600" />
+        <StatCard icon={CheckCircle2} label="Quan trọng & Khẩn cấp" value={String(bothCount)} accent="text-[#104e8b]" />
       </div>
 
       <SectionCard

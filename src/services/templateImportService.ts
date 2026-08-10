@@ -1,8 +1,22 @@
 import xlsx from 'xlsx';
 import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
-  IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
+  IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel, PivotModel,
 } from '../models';
+
+// Trim a sheet grid: drop fully-empty trailing rows and cap to the last non-empty column.
+function trimGrid(rows: Grid): string[][] {
+  const nonEmpty = (v: any) => v !== null && v !== undefined && String(v).trim() !== '';
+  let lastRow = -1, lastCol = -1;
+  rows.forEach((r, ri) => r.forEach((c, ci) => { if (nonEmpty(c)) { if (ri > lastRow) lastRow = ri; if (ci > lastCol) lastCol = ci; } }));
+  const out: string[][] = [];
+  for (let i = 0; i <= lastRow; i++) {
+    const row: string[] = [];
+    for (let j = 0; j <= lastCol; j++) row.push(rows[i] && rows[i][j] != null ? String(rows[i][j]) : '');
+    out.push(row);
+  }
+  return out;
+}
 import { Project, Employee, Contract, Ipc, BudgetItem, Issue, Todo, Analytics } from '../types';
 
 type Grid = any[][];
@@ -317,11 +331,14 @@ export async function importTemplate(src: Buffer | string, filename: string, use
   const budget = parseBudget(R('Budget'));
   const issues = parseIssues(R('Chance Logs'));
   const todos = parseTodos(R('To-do'));
+  const pivotGrid = trimGrid(R('Pivot'));
 
   await Promise.all([
     ProjectModel.deleteMany({}), EmployeeModel.deleteMany({}), ContractModel.deleteMany({}),
     IpcModel.deleteMany({}), BudgetItemModel.deleteMany({}), IssueModel.deleteMany({}), TodoModel.deleteMany({}),
+    PivotModel.deleteMany({}),
   ]);
+  await PivotModel.create({ grid: pivotGrid });
   if (projects.length) await ProjectModel.insertMany(projects);
   if (employees.length) await EmployeeModel.insertMany(employees);
   if (contracts.length) await ContractModel.insertMany(contracts);

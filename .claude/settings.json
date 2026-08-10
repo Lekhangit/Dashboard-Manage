@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(node -e ' *)",
-      "Bash(node scratch_kb.cjs)"
+      "Bash(node scratch_kb.cjs)",
+      "Bash(curl -s -o /dev/null -w \"App.tsx HTTP %{http_code}\\\\n\" \"http://localhost:3000/src/App.tsx\")"
     ]
   }
 }

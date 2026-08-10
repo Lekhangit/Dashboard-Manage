@@ -41,6 +41,10 @@ export const apiGetBudget    = (): Promise<BudgetItem[]> => getJson('/api/data/b
 export const apiGetIssues    = (): Promise<Issue[]>      => getJson('/api/data/issues');
 export const apiGetTodos     = (): Promise<Todo[]>       => getJson('/api/data/todos');
 export const apiGetAnalytics = (): Promise<Analytics>    => getJson('/api/data/analytics');
+export const apiGetPivot     = async (): Promise<string[][]> => {
+  const rows = await getJson('/api/data/pivot');
+  return (Array.isArray(rows) && rows[0] && rows[0].grid) ? rows[0].grid : [];
+};
 
 export async function apiLogin(username: string, password: string): Promise<{ token: string; user: AuthUser }> {
   const res = await fetch('/api/auth/login', {

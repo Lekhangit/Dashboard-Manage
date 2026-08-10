@@ -78,6 +78,10 @@ const TodoSchema = new Schema({
 }, opts);
 export const TodoModel = makeModel('TplTodo', TodoSchema, 'tpl_todos');
 
+// Pivot — raw grid of the Excel "Pivot" sheet, copied verbatim for Data Analysic.
+const PivotSchema = new Schema({ grid: { type: Schema.Types.Mixed, default: [] } }, opts);
+export const PivotModel = makeModel('TplPivot', PivotSchema, 'tpl_pivot');
+
 // 8. ActivityLog (derived from real issue rows)
 const ActivityLogSchema = new Schema({
   id: String, user: String, action: String, target: String,
