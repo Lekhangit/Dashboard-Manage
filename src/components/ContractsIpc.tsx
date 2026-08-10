@@ -11,10 +11,11 @@ interface Props {
   contracts: Contract[];
   ipc: Ipc[];
   projects?: Project[];
+  initialTab?: 'contracts' | 'ipc';
 }
 
-export function ContractsIpc({ contracts, ipc }: Props) {
-  const [tab, setTab] = useState<'contracts' | 'ipc'>('contracts');
+export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props) {
+  const [tab, setTab] = useState<'contracts' | 'ipc'>(initialTab);
   const [proj, setProj] = useState('');
 
   const projectOptions = useMemo(

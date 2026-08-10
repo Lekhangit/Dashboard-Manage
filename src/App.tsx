@@ -17,6 +17,7 @@ import { Budget } from './components/Budget';
 import { IssueBoard } from './components/IssueBoard';
 import { Todos } from './components/Todos';
 import { Compensation } from './components/Compensation';
+import { DataAnalysis } from './components/DataAnalysis';
 import {
   apiMe, clearToken, getToken,
   apiGetProjects, apiGetEmployees, apiGetContracts, apiGetIpc, apiGetBudget, apiGetIssues, apiGetTodos, apiGetAnalytics
@@ -38,6 +39,8 @@ import {
   ShieldAlert,
   Loader2,
   Menu,
+  Receipt,
+  PieChart,
 } from 'lucide-react';
 
 // ---- Danh sách các phân hệ (module) hiển thị trên sidebar ----
@@ -50,13 +53,16 @@ interface ModuleDef {
 }
 
 const MODULES: ModuleDef[] = [
-  { key: 'overview', label: 'Tổng Quan', icon: LayoutDashboard },
-  { key: 'projects', label: 'Dự Án', icon: Layers },
-  { key: 'resource', label: 'Nhân Lực', icon: Users },
-  { key: 'contracts', label: 'Hợp Đồng & IPC', icon: FileText },
-  { key: 'budget', label: 'Ngân Sách', icon: DollarSign },
-  { key: 'issues', label: 'Vấn Đề & Kanban', icon: AlertTriangle },
-  { key: 'todos', label: 'Công Việc', icon: CheckCircle },
+  { key: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'resource', label: 'Nhân Sự Khối Dự Án', icon: Users },
+  { key: 'contracts', label: 'Hợp Đồng - Phụ Lục - VO', icon: FileText },
+  { key: 'ipc', label: 'IPC Dự Án', icon: Receipt },
+  { key: 'budget', label: 'Ngân Sách Dự Án', icon: DollarSign },
+  { key: 'projects', label: 'Hiệu Quả Dự Án', icon: Layers },
+  { key: 'issues', label: 'Chance Management', icon: AlertTriangle },
+  { key: 'todos', label: 'To Do List', icon: CheckCircle },
+  { key: 'analytics', label: 'Data Analysic', icon: PieChart },
+  // Hệ thống (giữ để vận hành; ẩn theo quyền)
   { key: 'compensation', label: 'Chi phí & Lương', icon: Wallet, perm: 'view_compensation' },
   { key: 'users', label: 'Quản lý tài khoản', icon: UserCog, adminOnly: true },
   { key: 'uploads', label: 'Upload & Lịch sử', icon: History },
@@ -351,23 +357,39 @@ export default function App() {
                   )}
                   {activeModule === 'projects' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {projects.map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => setSelectedProjectId(p.id)}
-                          className="text-left bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs hover:shadow-md hover:border-blue-200 transition-all"
-                        >
-                          <span className="block font-bold text-slate-800 text-sm truncate">{p.name}</span>
-                          <span className="block text-[10px] text-slate-400 font-semibold mt-1 uppercase tracking-wider">{p.status || '—'}</span>
-                        </button>
-                      ))}
+                      {projects.map(p => {
+                        const late = /trễ|vượt/i.test(p.status || '');
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setSelectedProjectId(p.id)}
+                            className="text-left bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs hover:shadow-md hover:border-blue-200 transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="block font-bold text-slate-800 text-sm truncate">{p.name}</span>
+                              <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border ${late ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{p.status || '—'}</span>
+                            </div>
+                            <div className="mt-3 space-y-1.5 text-[11px] font-semibold text-slate-500">
+                              <div className="flex justify-between"><span>Doanh thu</span><span className="text-slate-700">{(p.revenue ? Math.round(p.revenue / 1e6).toLocaleString('vi-VN') : '—')} tr</span></div>
+                              <div className="flex justify-between"><span>Ngân sách / đã dùng</span><span className="text-slate-700">{p.budgetPct || 0}%</span></div>
+                              <div className="flex items-center gap-2">
+                                <span className="whitespace-nowrap">Tiến độ</span>
+                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#104e8b] rounded-full" style={{ width: `${Math.min(p.progressPct || 0, 100)}%` }} /></div>
+                                <span className="text-slate-700">{p.progressPct || 0}%</span>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                       {projects.length === 0 && (
                         <div className="col-span-full text-center text-slate-400 text-xs py-12">Chưa có dữ liệu dự án.</div>
                       )}
                     </div>
                   )}
                   {activeModule === 'resource' && <Resource employees={employees} projects={projects} authUser={authUser} />}
-                  {activeModule === 'contracts' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} />}
+                  {activeModule === 'contracts' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="contracts" />}
+                  {activeModule === 'ipc' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="ipc" />}
+                  {activeModule === 'analytics' && <DataAnalysis analytics={analytics} projects={projects} budget={budget} />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
                   {activeModule === 'issues' && <IssueBoard issues={issues} projects={projects} authUser={authUser} />}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}
