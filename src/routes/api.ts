@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { createUploadRequest, listUploadRequests, approveUpload, rejectUpload, previewUpload, downloadUpload } from '../controllers/uploadController';
-import { getCategoryData, getCompensation } from '../controllers/dataController';
+import { getCategoryData, getCompensation, getAnalytics } from '../controllers/dataController';
 import { login, me, changePassword, listUsers, createUser, updateUser } from '../controllers/authController';
 import { listComments, postComment } from '../controllers/commentController';
 import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth';
@@ -41,6 +41,8 @@ router.post('/issues/:issueId/comments', requireAuth, postComment);
 
 // Chi phí & Lương đãi ngộ: cần quyền view_compensation (đặt TRƯỚC route động /data/:category)
 router.get('/data/compensation', requirePermission('view_compensation'), getCompensation);
+// Dữ liệu tổng hợp Dashboard/Analytics (đặt TRƯỚC route động /data/:category)
+router.get('/data/analytics', requireAuth, getAnalytics);
 router.get('/data/:category', requireAuth, getCategoryData);
 
 export default router;

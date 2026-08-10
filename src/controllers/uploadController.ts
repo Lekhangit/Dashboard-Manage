@@ -22,9 +22,9 @@ const publicReq = (r: any) => ({
 // Áp dụng (import) file ngay khi Giám đốc điều hành (Đỗ Việt Phương) duyệt
 async function applyIfApproved(reqDoc: any) {
   if (reqDoc.status !== 'pending' || !reqDoc.gddhApproved) return reqDoc;
-  const fileBuffer = reqDoc.fileData || (reqDoc.storedPath ? fs.readFileSync(reqDoc.storedPath) : null);
-  if (!fileBuffer) throw new Error('Không tìm thấy dữ liệu file để import');
-  const stats = await importTemplate(fileBuffer, reqDoc.filename, reqDoc.requestedByName || reqDoc.requestedBy);
+  const src = reqDoc.fileData && reqDoc.fileData.length ? reqDoc.fileData : reqDoc.storedPath;
+  if (!src) throw new Error('Không tìm thấy dữ liệu file để import');
+  const stats = await importTemplate(src, reqDoc.filename, reqDoc.requestedByName || reqDoc.requestedBy);
   reqDoc.status = 'applied';
   reqDoc.appliedAt = new Date();
   reqDoc.appliedStats = stats;
