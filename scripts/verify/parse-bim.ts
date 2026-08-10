@@ -1,5 +1,5 @@
 import xlsx from 'xlsx';
-import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget } from '../../src/services/templateImportService';
+import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget, parseIssues } from '../../src/services/templateImportService';
 
 const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
 const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
@@ -52,6 +52,14 @@ eq('budget nonzero', budget.length > 0, true);
 const steel = budget.find(b => b.project === 'NaFoods' && b.category === 'Thép kết cấu' && b.plan === 4649991410);
 eq('budget steel parsed', !!steel, true);
 eq('budget steel over/in', (steel?.status.length ?? 0) > 0, true);
+
+const issues = parseIssues(rows('Chance Logs'));
+eq('issues nonzero', issues.length > 0, true);
+const vo1 = issues.find(x => x.project === 'NaFoods' && x.problem.startsWith('VO01'));
+eq('vo1 assignee', vo1?.assignee, 'Nguyễn Duy Tân');
+eq('vo1 id starts with nafoods|', vo1?.id.startsWith('nafoods|'), true);
+eq('vo1 id ends with logged date', vo1?.id.endsWith('2026-05-15'), true);
+eq('ids unique', new Set(issues.map(i => i.id)).size, issues.length);
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);

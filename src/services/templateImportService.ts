@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project, Employee, Contract, Ipc, BudgetItem } from '../types';
+import { Project, Employee, Contract, Ipc, BudgetItem, Issue } from '../types';
 
 type Grid = any[][];
 
@@ -202,6 +202,34 @@ export function parseBudget(rows: Grid): BudgetItem[] {
       project, pkg: str(r[c.pkg]), category, dept: str(r[c.dept]), desc: str(r[c.desc]),
       plan: numOr(r[c.plan]), actual: numOr(r[c.actual]), variance: numOr(r[c.variance]),
       usagePct: numOr(r[c.usage]), status: str(r[c.status]),
+    });
+  }
+  return out;
+}
+
+export function parseIssues(rows: Grid): Issue[] {
+  const h = findHeaderRow(rows, ['Ngày ghi nhận', 'Dự án', 'Vấn đề phát sinh']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    logged: colOf(hr, 'Ngày ghi nhận'), resp: colOf(hr, 'Ngày phản hồi'), project: colOf(hr, 'Dự án'),
+    assignee: colOf(hr, 'Người phụ trách'), problem: colOf(hr, 'Vấn đề phát sinh'),
+    solution: colOf(hr, 'Giải pháp hành động'), result: colOf(hr, 'Kết quả'), vo: colOf(hr, 'VO'),
+    budget: colOf(hr, 'Ngân sách'), planned: colOf(hr, 'Dự kiến'), actual: colOf(hr, 'Thực tế'),
+    status: colOf(hr, 'Tình trạng'),
+  };
+  const out: Issue[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i]; const project = str(r[c.project]), problem = str(r[c.problem]);
+    if (!project && !problem) continue;
+    if (norm(project).includes('total')) continue;
+    const loggedDate = fmtDate(r[c.logged]);
+    out.push({
+      id: `${slug(project)}|${slug(problem).slice(0, 40)}|${loggedDate}`,
+      loggedDate, responseDays: str(r[c.resp]), project, assignee: str(r[c.assignee]),
+      problem, solution: str(r[c.solution]), result: str(r[c.result]),
+      voBoq: numOr(r[c.vo]), budget: numOr(r[c.budget]),
+      plannedDate: fmtDate(r[c.planned]), actualDate: fmtDate(r[c.actual]), status: str(r[c.status]),
     });
   }
   return out;
