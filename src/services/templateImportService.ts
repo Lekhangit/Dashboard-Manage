@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project, Employee } from '../types';
+import { Project, Employee, Contract } from '../types';
 
 type Grid = any[][];
 
@@ -128,6 +128,30 @@ export function parseEmployees(rows: Grid): Employee[] {
       salary: str(r[c.salary]), insurance: str(r[c.ins]), allowance: str(r[c.allow]), cost: str(r[c.cost]),
       level: str(r[c.level]), subsystem: str(r[c.sub]), field: str(r[c.field]),
       education: str(r[c.edu]), cchn: str(r[c.cchn]), rank: str(r[c.rank]),
+    });
+  }
+  return out;
+}
+
+export function parseContracts(rows: Grid): Contract[] {
+  const h = findHeaderRow(rows, ['DỰ ÁN', 'SỐ HỢP ĐỒNG', 'Nội dung']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    project: colOf(hr, 'DỰ ÁN'), code: colOf(hr, 'SỐ HỢP ĐỒNG'), date: colOf(hr, 'NGÀY PHÁT HÀNH'),
+    amount: colOf(hr, 'Số tiền'), budget: colOf(hr, 'Ngân sách'), content: colOf(hr, 'Nội dung'),
+    note: colOf(hr, 'GHI CHÚ'), status: colOf(hr, 'Tình trạng'),
+  };
+  const out: Contract[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const project = str(r[c.project]), code = str(r[c.code]), content = str(r[c.content]);
+    const amount = numOr(r[c.amount]);
+    if (!project && !code && !content && !amount) continue;           // skip fully empty
+    if (norm(project).includes('total')) continue;
+    out.push({
+      project, code, issueDate: fmtDate(r[c.date]), amount, budget: numOr(r[c.budget]),
+      content, note: str(r[c.note]), status: str(r[c.status]),
     });
   }
   return out;
