@@ -1,5 +1,5 @@
 import xlsx from 'xlsx';
-import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget, parseIssues } from '../../src/services/templateImportService';
+import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget, parseIssues, parseTodos } from '../../src/services/templateImportService';
 
 const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
 const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
@@ -60,6 +60,13 @@ eq('vo1 assignee', vo1?.assignee, 'Nguyễn Duy Tân');
 eq('vo1 id starts with nafoods|', vo1?.id.startsWith('nafoods|'), true);
 eq('vo1 id ends with logged date', vo1?.id.endsWith('2026-05-15'), true);
 eq('ids unique', new Set(issues.map(i => i.id)).size, issues.length);
+
+const todos = parseTodos(rows('To-do'));
+eq('todos nonzero', todos.length > 0, true);
+const t1 = todos.find(t => t.content.startsWith('Tình hình sử dụng ngân') && t.project === 'NaFoods');
+eq('t1 important', t1?.important, true);
+eq('t1 urgent', t1?.urgent, false);
+eq('t1 status', t1?.status, 'Closed');
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);

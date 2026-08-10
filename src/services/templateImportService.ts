@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project, Employee, Contract, Ipc, BudgetItem, Issue } from '../types';
+import { Project, Employee, Contract, Ipc, BudgetItem, Issue, Todo } from '../types';
 
 type Grid = any[][];
 
@@ -230,6 +230,35 @@ export function parseIssues(rows: Grid): Issue[] {
       problem, solution: str(r[c.solution]), result: str(r[c.result]),
       voBoq: numOr(r[c.vo]), budget: numOr(r[c.budget]),
       plannedDate: fmtDate(r[c.planned]), actualDate: fmtDate(r[c.actual]), status: str(r[c.status]),
+    });
+  }
+  return out;
+}
+
+const boolOf = (v: any) => norm(v) === 'true';
+
+export function parseTodos(rows: Grid): Todo[] {
+  const h = findHeaderRow(rows, ['NHÓM', 'NỘI DUNG', 'QUAN TRỌNG']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    tt: colOf(hr, 'TT'), group: colOf(hr, 'NHÓM'), project: colOf(hr, 'DỰ ÁN'), content: colOf(hr, 'NỘI DUNG'),
+    start: colOf(hr, 'BẮT ĐẦU'), end: colOf(hr, 'KẾT THÚC'), days: colOf(hr, 'SỐ NGÀY'),
+    status: colOf(hr, 'TÌNH TRẠNG'), important: colOf(hr, 'QUAN TRỌNG'), urgent: colOf(hr, 'KHẨN CẤP'),
+    performer: colOf(hr, 'THỰC HIỆN'), coord: colOf(hr, 'PHỐI HỢP'), actual: colOf(hr, 'THỰC TẾ'),
+    earlyLate: colOf(hr, 'SỚM'), note: colOf(hr, 'GHI CHÚ'),
+  };
+  const out: Todo[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i]; const content = str(r[c.content]);
+    if (!content) continue;
+    if (norm(content).includes('total')) continue;
+    out.push({
+      tt: numOr(r[c.tt]), group: str(r[c.group]), project: str(r[c.project]), content,
+      start: fmtDate(r[c.start]), end: fmtDate(r[c.end]), days: numOr(r[c.days]),
+      status: str(r[c.status]), important: boolOf(r[c.important]), urgent: boolOf(r[c.urgent]),
+      performer: str(r[c.performer]), coordinator: str(r[c.coord]), actual: fmtDate(r[c.actual]),
+      earlyLate: str(r[c.earlyLate]), note: str(r[c.note]),
     });
   }
   return out;
