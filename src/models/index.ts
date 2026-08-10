@@ -13,99 +13,70 @@ const opts = { versionKey: false };
 const makeModel = <T>(name: string, schema: Schema, collection: string) =>
   (mongoose.models[name] as mongoose.Model<T>) || mongoose.model<T>(name, schema, collection);
 
-// 1. Project (Timeline + Budget merged)
+// 1. Project
 const ProjectSchema = new Schema({
-  id: { type: String, index: true },
-  name: String,
-  fullName: String,
-  manager: String,
-  budget: { type: Number, default: 0 },
-  spent: { type: Number, default: 0 },
-  revenue: { type: Number, default: 0 },
-  ipcActual: { type: Number, default: 0 },
-  ipcPlanned: { type: Number, default: 0 },
-  outstandingBudget: { type: Number, default: 0 },
-  bqBch: { type: Number, default: 0 },
-  bch: { type: Number, default: 0 },
-  pctPlan: { type: Number, default: 0 },
-  progressPlanned: { type: Number, default: 0 },
-  progressActual: { type: Number, default: 0 },
-  planStart: String, planEnd: String, planDays: Number,
-  actualStart: String, actualEnd: String, actualDays: Number,
-  varStart: Number, varEnd: Number, statusScore: Number,
-  startDate: String, endDate: String,
-  costPlan: { type: Number, default: 0 },
-  costActual: { type: Number, default: 0 },
-  variance: { type: Number, default: 0 },
-  status: String,
+  id: { type: String, index: true }, name: String,
+  bch: { type: Number, default: 0 }, revenue: { type: Number, default: 0 },
+  avgBch: { type: Number, default: 0 }, ipc: { type: Number, default: 0 },
+  ipcPct: { type: Number, default: 0 }, budget: { type: Number, default: 0 },
+  budgetUsed: { type: Number, default: 0 }, budgetPct: { type: Number, default: 0 },
+  planStart: String, planEnd: String, planDays: { type: Number, default: 0 },
+  actualStart: String, actualEnd: String, actualDays: { type: Number, default: 0 },
+  progressVsPlanPct: { type: Number, default: 0 }, bchEvalPct: { type: Number, default: 0 },
+  progressPct: { type: Number, default: 0 }, status: String,
 }, opts);
 export const ProjectModel = makeModel('TplProject', ProjectSchema, 'tpl_projects');
 
-// 2. Employee (Resource right table)
+// 2. Employee
 const EmployeeSchema = new Schema({
-  id: Number,
-  department: String, name: String, title: String, description: String,
-  kpi: String, salary: String, insurance: String, allowance: String, cost: String,
-  level: String, segment: String, branch: String, qualification: String,
-  certifications: String, grade: String, status: String,
+  tt: Number, department: String, project: { type: String, index: true },
+  name: String, title: String, plan: String, jobDesc: String, kpi: String,
+  salary: String, insurance: String, allowance: String, cost: String,
+  level: String, subsystem: String, field: String, education: String, cchn: String, rank: String,
 }, opts);
 export const EmployeeModel = makeModel('TplEmployee', EmployeeSchema, 'tpl_employees');
 
-// 3. ResourceSummary (Resource left table) - feeds HeadcountStats
-const ResourceSummarySchema = new Schema({
-  id: String, name: String, value: Number,
-  roleCounts: { type: Schema.Types.Mixed, default: {} },
-  focus: { type: String, default: '' },
-  type: { type: String, default: 'Project' },
-  status: { type: String, default: '' },
-}, opts);
-export const ResourceSummaryModel = makeModel('TplResourceSummary', ResourceSummarySchema, 'tpl_resource_summary');
-
-// 4. Contract (per-project sheet contract block)
+// 3. Contract
 const ContractSchema = new Schema({
-  id: String, projectId: { type: String, index: true }, projectName: String,
-  name: String, signDate: String, amount: { type: Number, default: 0 },
-  ipcAmount: { type: Number, default: 0 }, budget: { type: Number, default: 0 },
-  ipcBreakdown: { type: Schema.Types.Mixed, default: {} },
-  startDate: String, endDate: String, duration: String,
-  content: String, status: String, kind: String,
+  project: { type: String, index: true }, code: String, issueDate: String,
+  amount: { type: Number, default: 0 }, budget: { type: Number, default: 0 },
+  content: String, note: String, status: String,
 }, opts);
 export const ContractModel = makeModel('TplContract', ContractSchema, 'tpl_contracts');
 
-// 5. Issue (per-project issue blocks + Old_Pro)
+// 4. Ipc
+const IpcSchema = new Schema({
+  project: { type: String, index: true }, ipcNo: String, date: String, content: String,
+  amount: { type: Number, default: 0 }, vat: { type: Number, default: 0 }, total: { type: Number, default: 0 },
+  actualReceived: { type: Number, default: 0 }, received: { type: Number, default: 0 },
+  remaining: { type: Number, default: 0 }, status: String, note: String,
+}, opts);
+export const IpcModel = makeModel('TplIpc', IpcSchema, 'tpl_ipc');
+
+// 5. BudgetItem
+const BudgetItemSchema = new Schema({
+  project: { type: String, index: true }, pkg: String, category: String, dept: String, desc: String,
+  plan: { type: Number, default: 0 }, actual: { type: Number, default: 0 },
+  variance: { type: Number, default: 0 }, usagePct: { type: Number, default: 0 }, status: String,
+}, opts);
+export const BudgetItemModel = makeModel('TplBudgetItem', BudgetItemSchema, 'tpl_budget_items');
+
+// 6. Issue
 const IssueSchema = new Schema({
-  id: String, projectId: { type: String, index: true }, projectName: String,
-  loggedDate: String, assignee: String, item: String,
-  issueText: String, actionText: String, resultText: String,
-  voAmount: { type: Number, default: 0 }, budget: { type: Number, default: 0 },
-  targetComplete: String, actualComplete: String, status: String,
-  source: String,
+  id: { type: String, index: true }, loggedDate: String, responseDays: String,
+  project: { type: String, index: true }, assignee: String, problem: String, solution: String,
+  result: String, voBoq: { type: Number, default: 0 }, budget: { type: Number, default: 0 },
+  plannedDate: String, actualDate: String, status: String,
 }, opts);
 export const IssueModel = makeModel('TplIssue', IssueSchema, 'tpl_issues');
 
-// 6. Milestone
-const MilestoneSchema = new Schema({
-  id: String, projectId: { type: String, index: true }, name: String,
-  dueDate: String, status: String,
+// 7. Todo
+const TodoSchema = new Schema({
+  tt: Number, group: String, project: String, content: String, start: String, end: String,
+  days: { type: Number, default: 0 }, status: String, important: Boolean, urgent: Boolean,
+  performer: String, coordinator: String, actual: String, earlyLate: String, note: String,
 }, opts);
-export const MilestoneModel = makeModel('TplMilestone', MilestoneSchema, 'tpl_milestones');
-
-// 7. CashFlow (per-project monthly cashflow block)
-const CashFlowSchema = new Schema({
-  projectId: { type: String, index: true }, month: String,
-  plannedIn: { type: Number, default: 0 }, plannedOut: { type: Number, default: 0 },
-  actualIn: { type: Number, default: 0 }, actualOut: { type: Number, default: 0 },
-}, opts);
-export const CashFlowModel = makeModel('TplCashFlow', CashFlowSchema, 'tpl_cashflow');
-
-// 7b. CashFlowDetail (full monthly cashflow model per project: planned + actual)
-const CashFlowDetailSchema = new Schema({
-  projectId: { type: String, index: true },
-  params: { type: Schema.Types.Mixed, default: {} },
-  planned: { type: [Schema.Types.Mixed], default: [] },
-  actual: { type: [Schema.Types.Mixed], default: [] },
-}, opts);
-export const CashFlowDetailModel = makeModel('TplCashFlowDetail', CashFlowDetailSchema, 'tpl_cashflow_detail');
+export const TodoModel = makeModel('TplTodo', TodoSchema, 'tpl_todos');
 
 // 8. ActivityLog (derived from real issue rows)
 const ActivityLogSchema = new Schema({
