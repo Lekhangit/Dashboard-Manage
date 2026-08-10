@@ -54,8 +54,8 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return employees.filter(e => {
-      const matchesDept = dept === 'all' || e.department === dept;
-      const matchesProj = proj === 'all' || e.project === proj;
+      const matchesDept = dept === 'all' || (e.department || '').trim() === dept;
+      const matchesProj = proj === 'all' || (e.project || '').trim() === proj;
       const matchesSearch = !q || (e.name || '').toLowerCase().includes(q);
       return matchesDept && matchesProj && matchesSearch;
     });
