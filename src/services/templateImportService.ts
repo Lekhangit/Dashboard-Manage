@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project } from '../types';
+import { Project, Employee } from '../types';
 
 type Grid = any[][];
 
@@ -100,6 +100,34 @@ export function parseProjects(rows: Grid): Project[] {
       actualStart: fmtDate(r[c.ttStart]), actualEnd: fmtDate(r[c.ttEnd]), actualDays: numOr(r[actualDays]),
       progressVsPlanPct: numOr(r[c.vsPlan]), bchEvalPct: numOr(r[c.bchEval]),
       progressPct: numOr(r[c.prog]), status: str(r[c.status]),
+    });
+  }
+  return out;
+}
+
+export function parseEmployees(rows: Grid): Employee[] {
+  const h = findHeaderRow(rows, ['HỌ VÀ TÊN', 'CHỨC DANH', 'PHÒNG BAN']);
+  if (h === -1) return [];
+  const hr = rows[h];
+  const c = {
+    tt: colOf(hr, 'TT'), dept: colOf(hr, 'PHÒNG BAN'), project: colOf(hr, 'DỰ ÁN'),
+    name: colOf(hr, 'HỌ VÀ TÊN'), title: colOf(hr, 'CHỨC DANH'), plan: colOf(hr, 'KẾ HOẠCH'),
+    job: colOf(hr, 'MÔ TẢ CÔNG VIỆC'), kpi: colOf(hr, 'KPI'), salary: colOf(hr, 'LƯƠNG'),
+    ins: colOf(hr, 'BH'), allow: colOf(hr, 'PHỤ CẤP'), cost: colOf(hr, 'CHI PHÍ'),
+    level: colOf(hr, 'CẤP BẬC'), sub: colOf(hr, 'PHÂN HỆ'), field: colOf(hr, 'NGÀNH'),
+    edu: colOf(hr, 'Trình độ'), cchn: colOf(hr, 'CCHN'), rank: colOf(hr, 'HẠNG'),
+  };
+  const out: Employee[] = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i]; const name = str(r[c.name]); const tt = str(r[c.tt]);
+    if (!name || norm(name).includes('total') || norm(name).includes('grand')
+      || norm(tt).includes('total') || norm(tt).includes('grand')) continue;
+    out.push({
+      tt: numOr(r[c.tt]), department: str(r[c.dept]), project: str(r[c.project]),
+      name, title: str(r[c.title]), plan: str(r[c.plan]), jobDesc: str(r[c.job]), kpi: str(r[c.kpi]),
+      salary: str(r[c.salary]), insurance: str(r[c.ins]), allowance: str(r[c.allow]), cost: str(r[c.cost]),
+      level: str(r[c.level]), subsystem: str(r[c.sub]), field: str(r[c.field]),
+      education: str(r[c.edu]), cchn: str(r[c.cchn]), rank: str(r[c.rank]),
     });
   }
   return out;

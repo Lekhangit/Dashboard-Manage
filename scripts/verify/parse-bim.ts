@@ -1,6 +1,5 @@
 import xlsx from 'xlsx';
-import { norm, slug, numOr, fmtDate } from '../../src/services/templateImportService';
-import { parseProjects } from '../../src/services/templateImportService';
+import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees } from '../../src/services/templateImportService';
 
 const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
 const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
@@ -27,6 +26,14 @@ const naf = projects.find(p => p.id === 'nafoods')!;
 eq('nafoods bch', naf.bch, 12);
 eq('nafoods budget', naf.budget, 95952728146);
 eq('nafoods status nonempty', naf.status.length > 0, true);
+
+const emps = parseEmployees(rows('Resource'));
+eq('emp count', emps.length, 92);
+const quy = emps.find(e => e.name === 'Trần Vinh Quí')!;
+eq('quy dept', quy.department, 'HSE');
+eq('quy project', quy.project, 'NaFoods');
+eq('nafoods team size', emps.filter(e => e.project === 'NaFoods').length > 0, true);
+eq('no PMO leaked into NaFoods', emps.filter(e => e.project === 'NaFoods').every(e => e.department !== 'PMO'), true);
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);
