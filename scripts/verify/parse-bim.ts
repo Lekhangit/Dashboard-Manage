@@ -1,5 +1,5 @@
 import xlsx from 'xlsx';
-import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget, parseIssues, parseTodos } from '../../src/services/templateImportService';
+import { norm, slug, numOr, fmtDate, parseProjects, parseEmployees, parseContracts, parseIpc, parseBudget, parseIssues, parseTodos, computeAnalytics } from '../../src/services/templateImportService';
 
 const wb = xlsx.readFile('public/TPL Project Management BIM (1).xlsx', { cellDates: true });
 const rows = (n: string) => xlsx.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: '' }) as any[][];
@@ -67,6 +67,11 @@ const t1 = todos.find(t => t.content.startsWith('Tình hình sử dụng ngân')
 eq('t1 important', t1?.important, true);
 eq('t1 urgent', t1?.urgent, false);
 eq('t1 status', t1?.status, 'Closed');
+
+const analytics = computeAnalytics({ projects, employees: emps, contracts, ipc, budget, issues, todos });
+eq('analytics headcount', analytics.totals.headcount, emps.length);
+eq('analytics ipcByProject has nafoods', analytics.ipcByProject.some(x => x.project === 'NaFoods'), true);
+eq('analytics issueStatus nonempty', analytics.issueStatus.length > 0, true);
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASS');
 process.exit(fails ? 1 : 0);

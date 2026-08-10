@@ -3,7 +3,7 @@ import {
   ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, ImportHistoryModel,
 } from '../models';
-import { Project, Employee, Contract, Ipc, BudgetItem, Issue, Todo } from '../types';
+import { Project, Employee, Contract, Ipc, BudgetItem, Issue, Todo, Analytics } from '../types';
 
 type Grid = any[][];
 
@@ -262,4 +262,86 @@ export function parseTodos(rows: Grid): Todo[] {
     });
   }
   return out;
+}
+
+type Bundle = {
+  projects: Project[]; employees: Employee[]; contracts: Contract[];
+  ipc: Ipc[]; budget: BudgetItem[]; issues: Issue[]; todos: Todo[];
+};
+
+const groupCount = <T>(arr: T[], key: (t: T) => string) => {
+  const m = new Map<string, number>();
+  arr.forEach(t => { const k = key(t) || '(trống)'; m.set(k, (m.get(k) || 0) + 1); });
+  return [...m].map(([k, count]) => ({ k, count }));
+};
+
+export function computeAnalytics(d: Bundle): Analytics {
+  const ipcByProject = [...d.ipc.reduce((m, x) => {
+    const g = m.get(x.project) || { count: 0, value: 0 };
+    g.count++; g.value += x.total || x.amount || 0; m.set(x.project, g); return m;
+  }, new Map<string, { count: number; value: number }>())]
+    .map(([project, g]) => ({ project, count: g.count, value: g.value }));
+  const budgetByDept = [...d.budget.reduce((m, x) => {
+    const g = m.get(x.dept) || { plan: 0, actual: 0 };
+    g.plan += x.plan; g.actual += x.actual; m.set(x.dept || '(trống)', g); return m;
+  }, new Map<string, { plan: number; actual: number }>())]
+    .map(([dept, g]) => ({ dept, plan: g.plan, actual: g.actual, usagePct: g.plan ? Math.round(g.actual / g.plan * 100) : 0 }));
+  return {
+    ipcByProject,
+    budgetByDept,
+    headcountByLevel: groupCount(d.employees, e => e.level).map(x => ({ level: x.k, count: x.count })),
+    headcountByField: groupCount(d.employees, e => e.field).map(x => ({ field: x.k, count: x.count })),
+    headcountByProject: groupCount(d.employees, e => e.project).map(x => ({ project: x.k, count: x.count })),
+    issueStatus: groupCount(d.issues, i => i.status).map(x => ({ status: x.k, count: x.count })),
+    todoStatus: groupCount(d.todos, t => t.status).map(x => ({ status: x.k, count: x.count })),
+    totals: {
+      revenue: d.projects.reduce((s, p) => s + p.revenue, 0),
+      budget: d.projects.reduce((s, p) => s + p.budget, 0),
+      budgetUsed: d.projects.reduce((s, p) => s + p.budgetUsed, 0),
+      ipc: d.projects.reduce((s, p) => s + p.ipc, 0),
+      headcount: d.employees.length,
+    },
+  };
+}
+
+export async function importTemplate(src: Buffer | string, filename: string, username = 'System') {
+  const wb = typeof src === 'string'
+    ? xlsx.readFile(src, { cellDates: true })
+    : xlsx.read(src, { type: 'buffer', cellDates: true });
+  const R = (n: string) => sheetRows(wb, n);
+  const projects = parseProjects(R('Project'));
+  const employees = parseEmployees(R('Resource'));
+  const contracts = parseContracts(R('Contracts'));
+  const ipc = parseIpc(R('IPC'));
+  const budget = parseBudget(R('Budget'));
+  const issues = parseIssues(R('Chance Logs'));
+  const todos = parseTodos(R('To-do'));
+
+  await Promise.all([
+    ProjectModel.deleteMany({}), EmployeeModel.deleteMany({}), ContractModel.deleteMany({}),
+    IpcModel.deleteMany({}), BudgetItemModel.deleteMany({}), IssueModel.deleteMany({}), TodoModel.deleteMany({}),
+  ]);
+  if (projects.length) await ProjectModel.insertMany(projects);
+  if (employees.length) await EmployeeModel.insertMany(employees);
+  if (contracts.length) await ContractModel.insertMany(contracts);
+  if (ipc.length) await IpcModel.insertMany(ipc);
+  if (budget.length) await BudgetItemModel.insertMany(budget);
+  if (issues.length) await IssueModel.insertMany(issues);
+  if (todos.length) await TodoModel.insertMany(todos);
+
+  const stats = {
+    projects: projects.length, employees: employees.length, contracts: contracts.length,
+    ipc: ipc.length, budgetItems: budget.length, issues: issues.length, todos: todos.length,
+  };
+  await ImportHistoryModel.create({
+    filename, user: username,
+    sheets: wb.SheetNames.length, projects: stats.projects, employees: stats.employees,
+    contracts: stats.contracts, issues: stats.issues,
+  });
+  await ActivityLogModel.deleteMany({});
+  await ActivityLogModel.insertMany(issues.slice(0, 50).map((i, n) => ({
+    id: `log-${n}`, user: i.assignee, action: i.problem, target: i.project,
+    timestamp: i.loggedDate, project: i.project,
+  })));
+  return stats;
 }
