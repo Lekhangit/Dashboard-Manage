@@ -1,4 +1,4 @@
-import { AuthUser, Role } from './types';
+import { AuthUser, Role, Project, Employee, Contract, Ipc, BudgetItem, Issue, Todo, Analytics } from './types';
 
 const TOKEN_KEY = 'tpl_token';
 
@@ -30,6 +30,17 @@ async function jsonOrThrow(res: Response) {
   if (!res.ok) throw new Error((data as any).error || `Lỗi ${res.status}`);
   return data;
 }
+
+// ---- Dữ liệu nghiệp vụ (Projects, Employees, Contracts, IPC, Budget, Issues, Todos, Analytics) ----
+const getJson = async (url: string) => jsonOrThrow(await fetch(url));
+export const apiGetProjects  = (): Promise<Project[]>    => getJson('/api/data/projects');
+export const apiGetEmployees = (): Promise<Employee[]>   => getJson('/api/data/employees');
+export const apiGetContracts = (): Promise<Contract[]>   => getJson('/api/data/contracts');
+export const apiGetIpc       = (): Promise<Ipc[]>        => getJson('/api/data/ipc');
+export const apiGetBudget    = (): Promise<BudgetItem[]> => getJson('/api/data/budget');
+export const apiGetIssues    = (): Promise<Issue[]>      => getJson('/api/data/issues');
+export const apiGetTodos     = (): Promise<Todo[]>       => getJson('/api/data/todos');
+export const apiGetAnalytics = (): Promise<Analytics>    => getJson('/api/data/analytics');
 
 export async function apiLogin(username: string, password: string): Promise<{ token: string; user: AuthUser }> {
   const res = await fetch('/api/auth/login', {

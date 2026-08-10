@@ -1,9 +1,9 @@
 import React from 'react';
 
-export function ProjectPortal(props: any) {
+export function Resource(props: any) {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-4 text-slate-500 text-sm">
-      Hồ Sơ Dự Án — đang xây dựng (Task 15)
+      Nhân Lực — đang xây dựng (Task 16)
     </div>
   );
 }
