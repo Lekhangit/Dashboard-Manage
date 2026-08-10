@@ -65,20 +65,26 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
     { header: 'TT', align: 'center', render: (r) => <span className="font-mono text-slate-400">{r.tt || '—'}</span> },
     { header: 'Phòng ban', render: (r) => txt(r.department) },
     { header: 'Dự án', render: (r) => txt(r.project) },
-    { header: 'Họ tên', render: (r) => <span className="font-bold text-slate-800">{txt(r.name)}</span> },
+    { header: 'Họ và tên', render: (r) => <span className="font-bold text-slate-800">{txt(r.name)}</span> },
     { header: 'Chức danh', render: (r) => txt(r.title) },
+    { header: 'Kế hoạch', render: (r) => txt(r.plan) },
+    { header: 'Mô tả công việc', render: (r) => <span className="text-slate-500">{txt(r.jobDesc)}</span> },
+    { header: 'KPI', render: (r) => txt(r.kpi) },
+    // 4 cột chi phí/lương chỉ dựng khi có quyền — không render rồi ẩn bằng CSS.
+    ...(showSalary
+      ? [
+          { header: 'Lương', align: 'right' as const, render: (r: Employee) => <span className="font-mono font-bold text-slate-700">{moneyText(r.salary)}</span> },
+          { header: 'BH+YT', align: 'right' as const, render: (r: Employee) => <span className="font-mono">{moneyText(r.insurance)}</span> },
+          { header: 'Phụ cấp', align: 'right' as const, render: (r: Employee) => <span className="font-mono">{moneyText(r.allowance)}</span> },
+          { header: 'Chi phí', align: 'right' as const, render: (r: Employee) => <span className="font-mono">{moneyText(r.cost)}</span> },
+        ]
+      : []),
     { header: 'Cấp bậc', render: (r) => txt(r.level) },
+    { header: 'Phân hệ', render: (r) => txt(r.subsystem) },
     { header: 'Ngành', render: (r) => txt(r.field) },
     { header: 'Trình độ', render: (r) => txt(r.education) },
     { header: 'CCHN', render: (r) => txt(r.cchn) },
-    // Salary column is constructed only when permitted — never rendered then hidden via CSS.
-    ...(showSalary
-      ? [{
-          header: 'Lương',
-          align: 'right' as const,
-          render: (r: Employee) => <span className="font-mono font-bold text-slate-700">{moneyText(r.salary)}</span>,
-        }]
-      : []),
+    { header: 'Hạng', render: (r) => txt(r.rank) },
   ];
 
   const alignClass = (a?: 'left' | 'right' | 'center') => (a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '');
@@ -120,7 +126,7 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
       {/* Table */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className={`w-full text-left border-collapse text-xs ${showSalary ? 'min-w-[920px]' : 'min-w-[800px]'}`}>
+          <table className={`w-full text-left border-collapse text-xs ${showSalary ? 'min-w-[1800px]' : 'min-w-[1300px]'}`}>
             <thead>
               <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100">
                 {columns.map((c, i) => (
