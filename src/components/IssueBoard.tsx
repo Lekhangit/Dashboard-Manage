@@ -13,7 +13,7 @@ import React, { useMemo, useState } from 'react';
 import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, List, LayoutGrid, CheckCircle2, Star } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
 import { apiListComments, apiPostComment } from '../authClient';
-import { txt, money, StatusPill, DataTable, Column } from './tableKit';
+import { txt, money, StatusPill, DataTable, Column, ProjectFilter } from './tableKit';
 
 interface Props {
   issues: Issue[];
@@ -187,9 +187,13 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
   );
   const [board, setBoard] = useState<'chance' | 'todo'>('chance');
   const [chanceView, setChanceView] = useState<'kanban' | 'list'>('kanban');
+  const [proj, setProj] = useState('');
   const [selected, setSelected] = useState<Issue | null>(null);
   const [override, setOverride] = useState<Record<string, Lane>>({});
   const move = (key: string, lane: Lane) => setOverride(o => ({ ...o, [key]: lane }));
+
+  const projectOptions = useMemo(() => [...new Set(issues.map(i => (i.project || '').trim()).filter(Boolean))].sort(), [issues]);
+  const shownIssues = useMemo(() => (proj ? issues.filter(i => (i.project || '').trim() === proj) : issues), [issues, proj]);
 
   const issueKey = (i: Issue) => i.id;
   const todoKey = (t: Todo) => `todo-${t.tt}-${(t.content || '').slice(0, 24)}`;
@@ -237,9 +241,12 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
             <TabBtn k="todo" label="Công việc bản thân" icon={CheckSquare} badge={todos.length} />
           </div>
           {board === 'chance' && (
-            <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1 mr-2">
-              <button onClick={() => setChanceView('kanban')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'kanban' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><LayoutGrid className="w-3.5 h-3.5" /> Kanban</button>
-              <button onClick={() => setChanceView('list')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'list' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><List className="w-3.5 h-3.5" /> Danh sách</button>
+            <div className="flex items-center gap-2 mr-2">
+              <ProjectFilter value={proj} onChange={setProj} options={projectOptions} />
+              <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1">
+                <button onClick={() => setChanceView('kanban')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'kanban' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><LayoutGrid className="w-3.5 h-3.5" /> Kanban</button>
+                <button onClick={() => setChanceView('list')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'list' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><List className="w-3.5 h-3.5" /> Danh sách</button>
+              </div>
             </div>
           )}
         </div>
@@ -250,7 +257,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
               <>
                 <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>
                 <Board
-                  items={issues}
+                  items={shownIssues}
                   itemKey={issueKey}
                   laneKey={laneForIssue}
                   onMove={move}
@@ -269,9 +276,10 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
                 const tr = (e.target as HTMLElement).closest('tr');
                 if (!tr || tr.parentElement?.tagName !== 'TBODY') return;
                 const idx = Array.from(tr.parentElement.children).indexOf(tr);
-                if (issues[idx]) setSelected(issues[idx]);
+                if (shownIssues[idx]) setSelected(shownIssues[idx]);
               }}>
-                <DataTable columns={issueCols} rows={issues} minWidthClass="min-w-[1200px]" emptyLabel="Chưa có vấn đề." />
+                <DataTable columns={issueCols} rows={shownIssues} minWidthClass="min-w-[1200px]" emptyLabel="Chưa có vấn đề."
+                  footer={['Total', '', '', '', '', '', '', money(shownIssues.reduce((s, r) => s + (r.voBoq || 0), 0)), money(shownIssues.reduce((s, r) => s + (r.budget || 0), 0)), '', '', `${shownIssues.length}`]} />
               </div>
             )
           ) : (
