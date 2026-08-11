@@ -53,10 +53,31 @@ export function DataAnalysis() {
   if (!grid.length) return <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-8 text-center text-slate-400 text-sm">Chưa có dữ liệu Pivot. Hãy import file Excel có sheet "Pivot".</div>;
 
   const cols = Math.max(...grid.map((r) => r.length));
-  // Cột/hàng trống hoàn toàn = khoảng tách giữa các bảng pivot (không kẻ viền).
-  const emptyCol: boolean[] = Array.from({ length: cols }, (_, ci) => grid.every((r) => !(r[ci] ?? '').trim()));
-  const emptyRow: boolean[] = grid.map((r) => r.every((c) => !(c ?? '').trim()));
+  const nrows = grid.length;
   const rowHasTotal = grid.map((r) => r.some((c) => isTotalText(c ?? '')));
+
+  // Dò các KHỐI BẢNG: gom ô có dữ liệu theo 8 hướng liền kề, lấy hình chữ nhật bao.
+  // Ô rỗng NẰM TRONG khối -> vẫn đóng khung; ô ngoài mọi khối -> khoảng trống tách bảng.
+  const filled = grid.map((r) => Array.from({ length: cols }, (_, c) => !!(r[c] ?? '').trim()));
+  const inTable: boolean[][] = Array.from({ length: nrows }, () => new Array(cols).fill(false));
+  const seen: boolean[][] = Array.from({ length: nrows }, () => new Array(cols).fill(false));
+  for (let r = 0; r < nrows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!filled[r][c] || seen[r][c]) continue;
+      let minR = r, maxR = r, minC = c, maxC = c;
+      const stack: [number, number][] = [[r, c]]; seen[r][c] = true;
+      while (stack.length) {
+        const [cr, cc] = stack.pop()!;
+        if (cr < minR) minR = cr; if (cr > maxR) maxR = cr; if (cc < minC) minC = cc; if (cc > maxC) maxC = cc;
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          const nr = cr + dr, nc = cc + dc;
+          if (nr < 0 || nc < 0 || nr >= nrows || nc >= cols || seen[nr][nc] || !filled[nr][nc]) continue;
+          seen[nr][nc] = true; stack.push([nr, nc]);
+        }
+      }
+      for (let rr = minR; rr <= maxR; rr++) for (let cc = minC; cc <= maxC; cc++) inTable[rr][cc] = true;
+    }
+  }
 
   const BLUE = '#4472C4', BORDER = '#8EA9DB', TOTAL_BG = '#D9E1F2';
 
@@ -72,15 +93,15 @@ export function DataAnalysis() {
               <tr key={ri}>
                 {Array.from({ length: cols }).map((_, ci) => {
                   const v = (row[ci] ?? '').trim();
-                  // Ô rỗng -> khoảng trống (nền xám, không kẻ viền) -> tách các bảng ra.
-                  if (!v) {
-                    return <td key={ci} style={{ minWidth: emptyCol[ci] ? 30 : 12, height: emptyRow[ri] ? 20 : undefined, border: 'none', background: 'transparent' }} />;
+                  // Ngoài mọi khối bảng -> khoảng trống tách bảng (không kẻ viền).
+                  if (!inTable[ri][ci]) {
+                    return <td key={ci} style={{ minWidth: 16, border: 'none', background: 'transparent' }} />;
                   }
                   const header = isHeaderCell(v);
                   const total = rowHasTotal[ri];
                   const numeric = !header && isNumericCell(v);
                   const style: React.CSSProperties = {
-                    border: `1px solid ${BORDER}`, minWidth: 78, maxWidth: 280,
+                    border: `1px solid ${BORDER}`, minWidth: v ? 78 : 36, maxWidth: 280,
                     padding: '4px 9px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     verticalAlign: 'middle', background: '#fff',
                     textAlign: numeric ? 'right' : 'left',
