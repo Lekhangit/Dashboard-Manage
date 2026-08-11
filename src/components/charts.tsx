@@ -7,13 +7,29 @@
  * real parsed data; these components only draw, never fabricate.
  * Sizing is deliberately large for on-screen dashboard readability.
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface Series { name: string; color: string; values: number[]; raw?: number[]; }
 
 // Tooltip khi rê chuột: ưu tiên số gốc (raw) đầy đủ, có dấu phân cách.
 const barTitle = (s: Series, ci: number, v: number) =>
   `${s.name}: ${(s.raw && s.raw[ci] != null ? s.raw[ci] : v).toLocaleString('vi-VN')}`;
+
+// Hộp tooltip tùy biến, hiện NGAY khi rê chuột (không đợi như title mặc định).
+function useHoverTip() {
+  const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
+  const show = (text: string) => (e: React.MouseEvent) => setTip({ x: e.clientX, y: e.clientY, text });
+  const clear = () => setTip(null);
+  const node = tip ? (
+    <div style={{
+      position: 'fixed', left: Math.min(tip.x + 14, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 240),
+      top: tip.y + 14, zIndex: 70, background: '#0f172a', color: '#fff', padding: '5px 10px',
+      borderRadius: 6, fontSize: 12, fontWeight: 600, pointerEvents: 'none', whiteSpace: 'nowrap',
+      boxShadow: '0 6px 16px rgba(0,0,0,.3)',
+    }}>{tip.text}</div>
+  ) : null;
+  return { show, clear, node };
+}
 
 const fmtCompact = (n: number): string => {
   if (n === 0) return '0';
@@ -41,8 +57,10 @@ export const VBarGroup: React.FC<{
 }> = ({ categories, series, height = 330, format = fmtCompact }) => {
   const max = Math.max(1, ...series.flatMap((s) => s.values));
   const n = categories.length;
+  const t = useHoverTip();
   return (
     <div>
+      {t.node}
       <Legend items={series} className="mb-3 justify-center" />
       <div className="relative w-full overflow-x-auto">
         <div style={{ height, minWidth: n > 5 ? n * 100 : undefined }} className="relative flex items-end">
@@ -58,9 +76,10 @@ export const VBarGroup: React.FC<{
                   const v = s.values[ci] || 0;
                   const h = (v / max) * 88;
                   return (
-                    <div key={s.name} className="flex flex-col items-center justify-end h-full" style={{ width: 30 }} title={barTitle(s, ci, v)}>
+                    <div key={s.name} className="flex flex-col items-center justify-end h-full cursor-help" style={{ width: 30 }}
+                      onMouseMove={t.show(barTitle(s, ci, v))} onMouseLeave={t.clear}>
                       {v > 0 && <span className="text-[13px] font-bold text-slate-600 mb-0.5 whitespace-nowrap">{format(v)}</span>}
-                      <div style={{ height: `${h}%`, background: s.color, width: '100%' }} className="rounded-t-sm min-h-[2px] cursor-help" />
+                      <div style={{ height: `${h}%`, background: s.color, width: '100%' }} className="rounded-t-sm min-h-[2px]" />
                     </div>
                   );
                 })}
@@ -85,8 +104,10 @@ export const HBarGroup: React.FC<{
   format?: (n: number) => string;
 }> = ({ categories, series, format = fmtCompact }) => {
   const max = Math.max(1, ...series.flatMap((s) => s.values));
+  const t = useHoverTip();
   return (
     <div>
+      {t.node}
       <Legend items={series} className="mb-3" />
       <div className="space-y-2.5">
         {categories.map((cat, ci) => (
@@ -97,8 +118,8 @@ export const HBarGroup: React.FC<{
                 const v = s.values[ci] || 0;
                 const w = (v / max) * 100;
                 return (
-                  <div key={s.name} className="flex items-center gap-1.5" title={barTitle(s, ci, v)}>
-                    <div className="h-4 rounded-sm min-w-[2px] cursor-help" style={{ width: `${w}%`, background: s.color }} />
+                  <div key={s.name} className="flex items-center gap-1.5 cursor-help" onMouseMove={t.show(barTitle(s, ci, v))} onMouseLeave={t.clear}>
+                    <div className="h-4 rounded-sm min-w-[2px]" style={{ width: `${w}%`, background: s.color }} />
                     <span className="text-[12px] font-bold text-slate-600 whitespace-nowrap">{format(v)}</span>
                   </div>
                 );
@@ -136,15 +157,16 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
     return { ...d, start, end, pctNum: total ? (d.value / total) * 100 : 0 };
   });
   const labelR = donut ? r * 0.79 : r * 0.62;
+  const t = useHoverTip();
   return (
     <div className="flex items-center gap-4 flex-wrap justify-center">
+      {t.node}
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
         {total === 0 ? (
           <circle cx={cx} cy={cy} r={r} fill="#f1f5f9" />
         ) : segs.map((s) => (
-          s.value > 0 && <path key={s.label} d={arcPath(cx, cy, r, s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} className="cursor-help">
-            <title>{`${s.label}: ${s.value.toLocaleString('vi-VN')} (${Math.round(s.pctNum)}%)`}</title>
-          </path>
+          s.value > 0 && <path key={s.label} d={arcPath(cx, cy, r, s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} className="cursor-help"
+            onMouseMove={t.show(`${s.label}: ${s.value.toLocaleString('vi-VN')} (${Math.round(s.pctNum)}%)`)} onMouseLeave={t.clear} />
         ))}
         {donut && <circle cx={cx} cy={cy} r={r * 0.55} fill="#fff" />}
         {total > 0 && segs.map((s) => {
@@ -179,8 +201,10 @@ export const HStackedBar: React.FC<{
 }> = ({ categories, series }) => {
   const totals = categories.map((_, ci) => series.reduce((s, se) => s + (se.values[ci] || 0), 0));
   const max = Math.max(1, ...totals);
+  const t = useHoverTip();
   return (
     <div>
+      {t.node}
       <Legend items={series} className="mb-3" />
       <div className="space-y-2">
         {categories.map((cat, ci) => (
@@ -190,7 +214,8 @@ export const HStackedBar: React.FC<{
               {series.map((s) => {
                 const v = s.values[ci] || 0;
                 if (v <= 0) return null;
-                return <div key={s.name} style={{ width: `${(v / max) * 100}%`, background: s.color }} className="h-full" title={`${s.name}: ${v}`} />;
+                return <div key={s.name} style={{ width: `${(v / max) * 100}%`, background: s.color }} className="h-full cursor-help"
+                  onMouseMove={t.show(`${cat} — ${s.name}: ${v}`)} onMouseLeave={t.clear} />;
               })}
             </div>
             <span className="w-7 text-[12px] font-bold text-slate-600">{totals[ci] || ''}</span>
