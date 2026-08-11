@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 
-const DEFAULT_URI = 'mongodb+srv://leminhduykhang_db_user:23052004@datamanage.ziefw8j.mongodb.net/DashboardManage?retryWrites=true&w=majority&appName=DataManage';
+// Không hardcode chuỗi kết nối thật. Đặt MONGODB_URI ở .env (local) hoặc biến
+// môi trường (Render). Mặc định trỏ localhost để không lộ thông tin nhạy cảm.
+const DEFAULT_URI = 'mongodb://localhost:27017/DashboardManage';
 
 export const connectDB = async () => {
   // Read the URI at call time so a .env value injected during startup is honored
