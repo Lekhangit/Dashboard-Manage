@@ -361,7 +361,7 @@ export default function App() {
                   {activeModule === 'analytics' && <DataAnalysis />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
                   {activeModule === 'issues' && <IssueBoard issues={issues} todos={todos} projects={projects} authUser={authUser} />}
-                  {activeModule === 'warranty' && <WarrantyTable issues={issues} />}
+                  {activeModule === 'warranty' && <WarrantyTable />}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}
                   {activeModule === 'compensation' && (
                     hasPerm(authUser, 'view_compensation')
