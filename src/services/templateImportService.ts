@@ -50,13 +50,17 @@ export function fmtDate(v: any): string {
   else {
     const s = String(v).trim();
     if (!s) return '';
-    // support m/d/yy and dd/mm/yyyy textual dates
+    // Định dạng ngày lẫn lộn giữa các sheet:
+    //  - 4 chữ số năm (dd/mm/yyyy) : sheet Project, To-do  -> ngày trước, tháng sau
+    //  - 2 chữ số năm (m/d/yy)     : Contracts, IPC, Chance Logs -> tháng trước, ngày sau
     const mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
     if (mdy) {
-      let [_, a, b, y] = mdy; let Y = +y; if (Y < 100) Y += 2000;
-      // heuristic: if first > 12 it's d/m, else m/d (workbook uses m/d/yy)
-      const first = +a, second = +b;
-      const month = first > 12 ? second : first, day = first > 12 ? first : second;
+      const first = +mdy[1], second = +mdy[2], yStr = mdy[3];
+      let Y = +yStr; if (Y < 100) Y += 2000;
+      let month: number, day: number;
+      if (yStr.length === 4) { day = first; month = second; }          // dd/mm/yyyy
+      else if (first > 12) { day = first; month = second; }            // rõ ràng d/m
+      else { month = first; day = second; }                            // m/d/yy
       d = new Date(Y, month - 1, day);
     } else { const t = new Date(s); if (isNaN(+t)) return s; d = t; }
   }
@@ -93,13 +97,15 @@ export function parseProjects(rows: Grid): Project[] {
   const hr = rows[h];
   const c = {
     name: colOf(hr, 'DỰ ÁN'), bch: colOf(hr, 'BCH'), revenue: colOf(hr, 'DOANH THU'),
-    avgBch: colOf(hr, 'BQ BCH'), ipc: colOf(hr, 'IPC'), ipcPct: colOf(hr, '%IPC'),
+    avgBch: colOf(hr, 'BQ BCH'), ipc: colOf(hr, 'IPC'),
     budget: colOf(hr, 'NGÂN SÁCH'), used: colOf(hr, 'ĐÃ SỬ DỤNG'), ns: colOf(hr, '%NS'),
     planStart: colOf(hr, 'KH B.ĐẦU'), planEnd: colOf(hr, 'KH K.THÚC'),
     ttStart: colOf(hr, 'TT B.ĐẦU'), ttEnd: colOf(hr, 'TT K.THÚC'),
     vsPlan: colOf(hr, '%TT/KH'), bchEval: colOf(hr, '% BCH ĐÁNH GIÁ'),
     prog: colOf(hr, '% T.ĐỘ'), status: colOf(hr, 'TÌNH TRẠNG'),
   };
+  // norm('%IPC') === norm('IPC') -> lấy cột %IPC là cột ngay sau IPC.
+  const ipcPct = c.ipc + 1;
   const planDays = c.planEnd + 1;   // 'KẾ HOẠCH' (số ngày) ngay sau KH K.THÚC
   const actualDays = c.ttEnd + 1;   // 'THỰC TẾ' (số ngày) ngay sau TT K.THÚC
   const out: Project[] = [];
@@ -108,7 +114,7 @@ export function parseProjects(rows: Grid): Project[] {
     if (!name || norm(name).includes('total')) continue;
     out.push({
       id: slug(name), name, bch: numOr(r[c.bch]), revenue: numOr(r[c.revenue]),
-      avgBch: numOr(r[c.avgBch]), ipc: numOr(r[c.ipc]), ipcPct: numOr(r[c.ipcPct]),
+      avgBch: numOr(r[c.avgBch]), ipc: numOr(r[c.ipc]), ipcPct: numOr(r[ipcPct]),
       budget: numOr(r[c.budget]), budgetUsed: numOr(r[c.used]), budgetPct: numOr(r[c.ns]),
       planStart: fmtDate(r[c.planStart]), planEnd: fmtDate(r[c.planEnd]), planDays: numOr(r[planDays]),
       actualStart: fmtDate(r[c.ttStart]), actualEnd: fmtDate(r[c.ttEnd]), actualDays: numOr(r[actualDays]),
