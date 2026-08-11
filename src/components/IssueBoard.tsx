@@ -13,7 +13,7 @@ import React, { useMemo, useState } from 'react';
 import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
 import { apiListComments, apiPostComment } from '../authClient';
-import { txt, money, StatusPill, ProjectFilter } from './tableKit';
+import { txt, money, StatusPill, ProjectFilter, daysOutstanding } from './tableKit';
 
 interface Props {
   issues: Issue[];
@@ -243,7 +243,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
                     className="w-full text-left bg-white border border-slate-200 rounded-lg p-2.5 hover:border-[#104e8b] hover:shadow-sm transition-all">
                     <p className="text-xs font-semibold text-slate-700 line-clamp-2">{txt(it.problem)}</p>
                     <span className="block text-[10px] text-slate-500 mt-1">DA: {txt(it.project)}</span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5">{txt(it.assignee)}{it.responseDays ? ` | Tồn: ${it.responseDays} ngày` : ''}</span>
+                    <span className="block text-[10px] text-slate-400 mt-0.5">{txt(it.assignee)} | Tồn: {daysOutstanding(it.loggedDate, it.status, it.responseDays)} ngày</span>
                   </button>
                 )}
               />

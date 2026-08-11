@@ -33,6 +33,19 @@ export const txt = (s?: string | number | null): string => {
   return str ? str : '—';
 };
 
+// "Ngày phản hồi" / số ngày tồn đọng: Closed -> giữ giá trị đã chốt trong file;
+// còn mở (Opened/Ongoing/Pending) -> tính sống = hôm nay - ngày ghi nhận (như công thức Excel).
+export const daysOutstanding = (loggedDate?: string, status?: string, storedDays?: string): string => {
+  const stored = (storedDays ?? '').toString().trim();
+  if (/close/i.test(status || '')) return stored || '—';
+  const m = String(loggedDate || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return stored || '—';
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((today.getTime() - d.getTime()) / 86400000);
+  return diff >= 0 ? String(diff) : (stored || '—');
+};
+
 export const isOnTrack = (status?: string) => /trong/i.test(status || '');
 export const isLate = (status?: string) => /(trễ|vượt|quá)/i.test(status || '');
 

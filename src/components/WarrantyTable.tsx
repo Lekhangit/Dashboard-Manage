@@ -7,7 +7,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { Issue } from '../types';
-import { DataTable, Column, money, txt, StatusPill, ProjectFilter } from './tableKit';
+import { DataTable, Column, money, txt, StatusPill, ProjectFilter, daysOutstanding } from './tableKit';
 
 interface Props {
   issues: Issue[];
@@ -28,7 +28,7 @@ export function WarrantyTable({ issues }: Props) {
 
   const cols: Column<Issue>[] = [
     { header: 'Ngày ghi nhận', render: r => txt(r.loggedDate) },
-    { header: 'Ngày phản hồi', align: 'right', className: 'bg-rose-50', render: r => txt(r.responseDays) },
+    { header: 'Ngày phản hồi', align: 'right', className: 'bg-rose-50', render: r => daysOutstanding(r.loggedDate, r.status, r.responseDays) },
     { header: 'Dự án', render: r => <span className="font-semibold text-slate-700">{txt(r.project)}</span> },
     { header: 'Người phụ trách', render: r => txt(r.assignee) },
     { header: 'Vấn đề phát sinh', render: r => <span className="text-slate-700">{txt(r.problem)}</span> },
