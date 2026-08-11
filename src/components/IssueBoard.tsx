@@ -179,7 +179,12 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   );
 }
 
-export function IssueBoard({ issues, todos = [], authUser }: Props) {
+export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
+  // Match the Excel "Chance Logs" order (by Ngày ghi nhận ascending).
+  const issues = useMemo(
+    () => [...rawIssues].sort((a, b) => String(a.loggedDate || '').localeCompare(String(b.loggedDate || ''))),
+    [rawIssues],
+  );
   const [board, setBoard] = useState<'chance' | 'todo'>('chance');
   const [chanceView, setChanceView] = useState<'kanban' | 'list'>('kanban');
   const [selected, setSelected] = useState<Issue | null>(null);
