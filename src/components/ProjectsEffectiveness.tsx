@@ -21,8 +21,35 @@ const ddmmyyyy = (s?: string) => {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
 };
 
+// Công thức sống của Excel: TT K.THÚC = hôm nay; THỰC TẾ = hôm nay - TT B.ĐẦU;
+// %TT/KH và % T.ĐỘ = THỰC TẾ / KẾ HOẠCH. Tính lại để khớp file sống.
+const parseYmd = (s?: string) => {
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+};
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const daysFromToday = (ymd?: string): number | null => {
+  const d = parseYmd(ymd); if (!d) return null;
+  const n = Math.round((today0().getTime() - d.getTime()) / 86400000);
+  return n >= 0 ? n : null;
+};
+const todayStr = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
+
 export function ProjectsEffectiveness({ projects, onSelect }: Props) {
   const late = (s?: string) => /trễ|vượt/i.test(s || '');
+
+  // Giá trị "sống" cho mỗi dự án (khớp công thức TODAY() của Excel).
+  const liveOf = (p: Project) => {
+    const ad = daysFromToday(p.actualStart) ?? (p.actualDays || 0);
+    const pd = p.planDays || 0;
+    const ratio = pd ? (ad / pd) * 100 : (p.progressPct || 0);
+    return {
+      actualEnd: todayStr(),
+      actualDays: ad,
+      vsPlan: pd ? Math.round(ratio) : (p.progressVsPlanPct || 0),
+      prog: pd ? Math.round(ratio * 100) / 100 : (p.progressPct || 0),
+    };
+  };
 
   const T = projects.reduce(
     (a, p) => {
@@ -83,7 +110,9 @@ export function ProjectsEffectiveness({ projects, onSelect }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 font-medium">
-            {projects.map((p, i) => (
+            {projects.map((p, i) => {
+              const lv = liveOf(p);
+              return (
               <tr key={p.id} className="hover:bg-blue-50/40 cursor-pointer" onClick={() => onSelect?.(p.id)}>
                 <td className={`${td} text-center text-slate-400 font-mono`}>{i + 1}</td>
                 <td className={`${td} font-bold text-slate-800`}>{p.name}</td>
@@ -99,16 +128,17 @@ export function ProjectsEffectiveness({ projects, onSelect }: Props) {
                 <td className={td}>{ddmmyyyy(p.planEnd)}</td>
                 <td className={`${td} text-right`}>{n0(p.planDays)}</td>
                 <td className={td}>{ddmmyyyy(p.actualStart)}</td>
-                <td className={td}>{ddmmyyyy(p.actualEnd)}</td>
-                <td className={`${td} text-right`}>{n0(p.actualDays)}</td>
-                <td className={`${td} text-right`}>{pc(p.progressVsPlanPct)}</td>
+                <td className={td}>{lv.actualEnd}</td>
+                <td className={`${td} text-right`}>{n0(lv.actualDays)}</td>
+                <td className={`${td} text-right`}>{pc(lv.vsPlan)}</td>
                 <td className={`${td} text-right`}>{pc(p.bchEvalPct)}</td>
-                <td className={`${td} text-right font-semibold ${risk}`}>{pc(p.progressPct)}</td>
+                <td className={`${td} text-right font-semibold ${risk}`}>{lv.prog.toFixed(2)}%</td>
                 <td className={`${td} text-center`}>
                   <span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] font-bold ${late(p.status) ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{p.status || '—'}</span>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {projects.length === 0 && (
               <tr><td colSpan={20} className="py-10 text-center text-slate-400">Chưa có dữ liệu dự án.</td></tr>
             )}
