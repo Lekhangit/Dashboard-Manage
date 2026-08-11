@@ -69,6 +69,7 @@ export interface Column<T> {
   header: string;
   align?: 'left' | 'right' | 'center';
   render: (row: T) => React.ReactNode;
+  className?: string; // applied to th + td + footer cell (e.g. column highlight)
 }
 
 const alignClass = (a?: 'left' | 'right' | 'center') =>
@@ -87,7 +88,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer 
         <thead>
           <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100">
             {columns.map((c, i) => (
-              <th key={i} className={`py-3 px-4 ${alignClass(c.align)}`}>{c.header}</th>
+              <th key={i} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.header}</th>
             ))}
           </tr>
         </thead>
@@ -95,7 +96,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer 
           {rows.map((row, idx) => (
             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
               {columns.map((c, ci) => (
-                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)}`}>{c.render(row)}</td>
+                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.render(row)}</td>
               ))}
             </tr>
           ))}
@@ -107,7 +108,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer 
           <tfoot>
             <tr className="bg-slate-100 font-black text-slate-800 border-t-2 border-slate-300">
               {columns.map((c, ci) => (
-                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)}`}>{footer[ci]}</td>
+                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{footer[ci]}</td>
               ))}
             </tr>
           </tfoot>

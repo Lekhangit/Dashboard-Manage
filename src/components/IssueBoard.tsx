@@ -201,16 +201,16 @@ export function IssueBoard({ issues, todos = [], authUser }: Props) {
 
   const issueCols: Column<Issue>[] = [
     { header: 'Ngày ghi nhận', render: r => txt(r.loggedDate) },
-    { header: 'Tồn (ngày)', align: 'right', render: r => txt(r.responseDays) },
+    { header: 'Ngày phản hồi', align: 'right', className: 'bg-rose-50', render: r => txt(r.responseDays) },
     { header: 'Dự án', render: r => <span className="font-semibold text-slate-700">{txt(r.project)}</span> },
     { header: 'Người phụ trách', render: r => txt(r.assignee) },
-    { header: 'Vấn đề', render: r => <span className="text-slate-700">{txt(r.problem)}</span> },
-    { header: 'Giải pháp', render: r => <span className="text-slate-500">{txt(r.solution)}</span> },
+    { header: 'Vấn đề phát sinh', render: r => <span className="text-slate-700">{txt(r.problem)}</span> },
+    { header: 'Giải pháp hành động', render: r => <span className="text-slate-500">{txt(r.solution)}</span> },
     { header: 'Kết quả', render: r => <span className="text-slate-500">{txt(r.result)}</span> },
-    { header: 'VO/BOQ', align: 'right', render: r => money(r.voBoq) },
+    { header: 'VO / BOQ', align: 'right', render: r => money(r.voBoq) },
     { header: 'Ngân sách', align: 'right', render: r => money(r.budget) },
-    { header: 'Dự kiến', render: r => txt(r.plannedDate) },
-    { header: 'Thực tế', render: r => txt(r.actualDate) },
+    { header: 'Dự kiến hoàn thành', render: r => txt(r.plannedDate) },
+    { header: 'Thực tế hoàn thành', render: r => txt(r.actualDate) },
     { header: 'Tình trạng', align: 'center', render: r => <StatusPill status={r.status} /> },
   ];
 
@@ -219,7 +219,11 @@ export function IssueBoard({ issues, todos = [], authUser }: Props) {
       <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
         <div className="p-4 border-b border-[#E5E7EB] bg-[#8b1a1a]">
           <h3 className="font-black text-white text-sm uppercase tracking-wide text-center">
-            {board === 'chance' ? 'Kanban - Chance Logs (Vấn đề dự án / BHBT / BIM)' : 'Kanban Board - Quản Lý Công Việc Bản Thân'}
+            {board === 'todo'
+              ? 'Kanban Board - Quản Lý Công Việc Bản Thân'
+              : chanceView === 'list'
+                ? 'Dự Án - Phòng Bảo Hành Bảo Trì - BIM Center'
+                : 'Kanban - Chance Logs (Vấn đề dự án / BHBT / BIM)'}
           </h3>
         </div>
         <div className="flex items-center justify-between border-b border-slate-100 px-2">
