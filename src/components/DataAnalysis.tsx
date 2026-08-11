@@ -42,11 +42,11 @@ export function DataAnalysis() {
       <div className="p-4 border-b border-[#E5E7EB] bg-[#8b1a1a]">
         <h3 className="font-black text-white text-sm uppercase tracking-wide text-center">Data Analysic — Pivot (sao chép từ Excel)</h3>
       </div>
-      <div className="overflow-auto max-h-[78vh]">
-        <table className="border-collapse text-[11px]" style={{ tableLayout: 'auto' }}>
+      <div className="overflow-auto max-h-[80vh] p-2">
+        <table className="text-[11px] border border-slate-300" style={{ tableLayout: 'auto', borderCollapse: 'collapse' }}>
           <tbody>
             {grid.map((row, ri) => (
-              <tr key={ri} className="align-top">
+              <tr key={ri} className={ri % 2 ? 'bg-slate-50/50' : 'bg-white'}>
                 {Array.from({ length: cols }).map((_, ci) => {
                   const v = (row[ci] ?? '').trim();
                   const heading = isHeading(v);
@@ -54,7 +54,9 @@ export function DataAnalysis() {
                   return (
                     <td
                       key={ci}
-                      className={`border border-slate-100 px-2 py-1 whitespace-nowrap ${heading ? 'font-bold text-slate-800 bg-slate-50' : numeric ? 'text-right font-mono text-slate-700' : 'text-slate-600'}`}
+                      style={{ minWidth: 84, maxWidth: 260 }}
+                      className={`border border-slate-300 px-2.5 py-1.5 align-middle whitespace-nowrap overflow-hidden text-ellipsis ${heading ? 'font-bold text-slate-800 bg-slate-100' : numeric ? 'text-right font-mono text-slate-700' : 'text-slate-600'}`}
+                      title={v || undefined}
                     >
                       {v}
                     </td>
