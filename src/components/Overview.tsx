@@ -32,7 +32,7 @@ const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; s
     </div>
     <div className="min-w-0 flex-1">
       <span className="block text-xs uppercase font-extrabold tracking-wider text-slate-400 truncate">{label}</span>
-      <span className="block text-lg xl:text-xl 2xl:text-2xl font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: accent }} title={value}>{value}</span>
+      <span className="block text-xl xl:text-2xl font-black leading-tight whitespace-nowrap" style={{ color: accent }} title={value}>{value}</span>
       {sub && <span className="block text-xs text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>
@@ -51,10 +51,9 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
   const headcount = employees.length;
   const salaryFund = employees.reduce((s, e) => s + (parseFloat(String(e.salary || '').replace(/[^0-9.\-]/g, '')) || 0), 0);
   const cchnCount = employees.filter((e) => (e.cchn || '').trim()).length;
-  // "Tổng doanh thu" = tổng giá trị hợp đồng đã ký (như dashboard Excel).
-  const totalRevenue = contracts
-    .filter((c) => norm(c.status).includes('da ky'))
-    .reduce((s, c) => s + (c.amount || 0), 0);
+  // "Tổng doanh thu" = giá trị "Đã ký" từ sheet Pivot (đúng số Excel 176.386.467.046).
+  const totalRevenue = analytics?.totals.signedRevenue
+    || contracts.filter((c) => norm(c.status).includes('da ky')).reduce((s, c) => s + (c.amount || 0), 0);
 
   // ---- Headcount by field / level (Nhân sự + Chứng chỉ) ----
   const groupNS = (key: (e: Employee) => string) => {
@@ -96,7 +95,7 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
         <Kpi icon={Users2} label="Số lượng nhân sự" value={headcount.toLocaleString('vi-VN')} accent="#104e8b" />
         <Kpi icon={Coins} label="Tổng quỹ lương" value={`${(salaryFund / 1e9).toFixed(2)} tỷ`} accent="#7c3aed" sub="đồng" />
         <Kpi icon={BadgeCheck} label="S.Lg CCHN" value={cchnCount.toLocaleString('vi-VN')} accent="#0ea5e9" />

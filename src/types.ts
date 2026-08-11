@@ -86,7 +86,7 @@ export interface Analytics {
   headcountByProject: { project: string; count: number }[];
   issueStatus: { status: string; count: number }[];
   todoStatus: { status: string; count: number }[];
-  totals: { revenue: number; budget: number; budgetUsed: number; ipc: number; headcount: number };
+  totals: { revenue: number; budget: number; budgetUsed: number; ipc: number; headcount: number; signedRevenue?: number };
 }
 
 export interface CashFlowMonth {

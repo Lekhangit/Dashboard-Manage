@@ -40,13 +40,35 @@ export const getCategoryData = async (req: Request, res: Response) => {
 };
 
 // Dữ liệu tổng hợp phục vụ Dashboard/Analytics.
+// "Tổng doanh thu" theo Excel = giá trị "Đã ký" của khối Hợp đồng/PL/VO trong
+// sheet Pivot (đọc thẳng từ file, không tính lại).
+function signedRevenueFromPivot(grid: string[][]): number {
+  if (!Array.isArray(grid)) return 0;
+  for (const row of grid) {
+    for (let ci = 0; ci < row.length; ci++) {
+      const cell = String(row[ci] ?? '').trim();
+      if (/^₫[\d.,]+$/.test(cell)) {
+        for (let k = Math.max(0, ci - 3); k < ci; k++) {
+          if (/^đã ký$/i.test(String(row[k] ?? '').trim())) {
+            return parseInt(cell.replace(/[^\d]/g, ''), 10) || 0;
+          }
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 export const getAnalytics = async (_req: Request, res: Response) => {
   try {
-    const [projects, employees, contracts, ipc, budget, issues, todos] = await Promise.all([
+    const [projects, employees, contracts, ipc, budget, issues, todos, pivotDoc] = await Promise.all([
       ProjectModel.find({}).lean(), EmployeeModel.find({}).lean(), ContractModel.find({}).lean(),
       IpcModel.find({}).lean(), BudgetItemModel.find({}).lean(), IssueModel.find({}).lean(), TodoModel.find({}).lean(),
+      PivotModel.findOne({}).lean(),
     ]);
-    res.json(computeAnalytics({ projects, employees, contracts, ipc, budget, issues, todos } as any));
+    const analytics = computeAnalytics({ projects, employees, contracts, ipc, budget, issues, todos } as any);
+    analytics.totals.signedRevenue = signedRevenueFromPivot((pivotDoc as any)?.grid || []);
+    res.json(analytics);
   } catch (e: any) {
     console.error('Get analytics error:', e);
     res.status(500).json({ error: e.message || 'Internal Server Error' });
