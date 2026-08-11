@@ -65,16 +65,16 @@ export function DataAnalysis() {
       <div className="p-4 border-b border-[#E5E7EB] bg-[#8b1a1a]">
         <h3 className="font-black text-white text-sm uppercase tracking-wide text-center">Data Analysic — Pivot (sao chép từ Excel)</h3>
       </div>
-      <div className="overflow-auto max-h-[80vh] p-3 bg-white">
-        <table style={{ tableLayout: 'auto', borderCollapse: 'collapse', fontSize: 11 }}>
+      <div className="overflow-auto max-h-[80vh] p-4 bg-slate-100">
+        <table style={{ tableLayout: 'auto', borderCollapse: 'separate', borderSpacing: 0, fontSize: 11 }}>
           <tbody>
             {grid.map((row, ri) => (
               <tr key={ri}>
                 {Array.from({ length: cols }).map((_, ci) => {
                   const v = (row[ci] ?? '').trim();
-                  // Ô nằm trong cột/hàng tách -> khoảng trắng, không kẻ.
+                  // Ô nằm trong cột/hàng tách -> khoảng trống giữa các bảng (nền xám, không kẻ).
                   if (emptyCol[ci] || emptyRow[ri]) {
-                    return <td key={ci} style={{ width: emptyCol[ci] ? 14 : undefined, height: emptyRow[ri] ? 8 : undefined, border: 'none' }} />;
+                    return <td key={ci} style={{ width: emptyCol[ci] ? 34 : undefined, height: emptyRow[ri] ? 22 : undefined, border: 'none', background: 'transparent' }} />;
                   }
                   const header = isHeaderCell(v);
                   const total = rowHasTotal[ri];
@@ -82,7 +82,7 @@ export function DataAnalysis() {
                   const style: React.CSSProperties = {
                     border: `1px solid ${BORDER}`, minWidth: 78, maxWidth: 280,
                     padding: '4px 9px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    verticalAlign: 'middle',
+                    verticalAlign: 'middle', background: '#fff',
                     textAlign: numeric ? 'right' : 'left',
                   };
                   if (header) { style.background = BLUE; style.color = '#fff'; style.fontWeight = 700; }
