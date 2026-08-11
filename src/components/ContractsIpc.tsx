@@ -125,13 +125,13 @@ export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props
               />
             </div>
           </SectionCard>
-          <SectionCard title="Tiền Đã Thu & Còn Phải Thu Theo Tháng" right={<span className="text-[10px] font-semibold text-slate-400">ĐVT: triệu đồng</span>}>
+          <SectionCard title="Tiền Đã Thu & Còn Phải Thu Theo Tháng" right={<span className="text-[10px] font-semibold text-slate-400">ĐVT: tỉ đồng</span>}>
             <div className="p-4">
               <VBarGroup
                 categories={byMonth.map(m => m[0])}
                 series={[
-                  { name: 'Đã thu', color: '#1f3864', values: byMonth.map(m => Math.round(m[1].thu / 1e6)) },
-                  { name: 'Còn phải thu', color: '#8b1a1a', values: byMonth.map(m => Math.round(m[1].conlai / 1e6)) },
+                  { name: 'Đã thu', color: '#1f3864', values: byMonth.map(m => Math.round(m[1].thu / 1e8) / 10) },
+                  { name: 'Còn phải thu', color: '#8b1a1a', values: byMonth.map(m => Math.round(m[1].conlai / 1e8) / 10) },
                 ]}
               />
             </div>
