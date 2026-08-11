@@ -72,9 +72,9 @@ export function DataAnalysis() {
               <tr key={ri}>
                 {Array.from({ length: cols }).map((_, ci) => {
                   const v = (row[ci] ?? '').trim();
-                  // Ô nằm trong cột/hàng tách -> khoảng trống giữa các bảng (nền xám, không kẻ).
-                  if (emptyCol[ci] || emptyRow[ri]) {
-                    return <td key={ci} style={{ width: emptyCol[ci] ? 34 : undefined, height: emptyRow[ri] ? 22 : undefined, border: 'none', background: 'transparent' }} />;
+                  // Ô rỗng -> khoảng trống (nền xám, không kẻ viền) -> tách các bảng ra.
+                  if (!v) {
+                    return <td key={ci} style={{ minWidth: emptyCol[ci] ? 30 : 12, height: emptyRow[ri] ? 20 : undefined, border: 'none', background: 'transparent' }} />;
                   }
                   const header = isHeaderCell(v);
                   const total = rowHasTotal[ri];
