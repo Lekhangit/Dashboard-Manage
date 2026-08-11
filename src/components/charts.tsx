@@ -9,7 +9,11 @@
  */
 import React from 'react';
 
-export interface Series { name: string; color: string; values: number[]; }
+export interface Series { name: string; color: string; values: number[]; raw?: number[]; }
+
+// Tooltip khi rê chuột: ưu tiên số gốc (raw) đầy đủ, có dấu phân cách.
+const barTitle = (s: Series, ci: number, v: number) =>
+  `${s.name}: ${(s.raw && s.raw[ci] != null ? s.raw[ci] : v).toLocaleString('vi-VN')}`;
 
 const fmtCompact = (n: number): string => {
   if (n === 0) return '0';
@@ -54,9 +58,9 @@ export const VBarGroup: React.FC<{
                   const v = s.values[ci] || 0;
                   const h = (v / max) * 88;
                   return (
-                    <div key={s.name} className="flex flex-col items-center justify-end h-full" style={{ width: 30 }}>
+                    <div key={s.name} className="flex flex-col items-center justify-end h-full" style={{ width: 30 }} title={barTitle(s, ci, v)}>
                       {v > 0 && <span className="text-[13px] font-bold text-slate-600 mb-0.5 whitespace-nowrap">{format(v)}</span>}
-                      <div style={{ height: `${h}%`, background: s.color, width: '100%' }} className="rounded-t-sm min-h-[2px]" />
+                      <div style={{ height: `${h}%`, background: s.color, width: '100%' }} className="rounded-t-sm min-h-[2px] cursor-help" />
                     </div>
                   );
                 })}
@@ -93,8 +97,8 @@ export const HBarGroup: React.FC<{
                 const v = s.values[ci] || 0;
                 const w = (v / max) * 100;
                 return (
-                  <div key={s.name} className="flex items-center gap-1.5">
-                    <div className="h-4 rounded-sm min-w-[2px]" style={{ width: `${w}%`, background: s.color }} />
+                  <div key={s.name} className="flex items-center gap-1.5" title={barTitle(s, ci, v)}>
+                    <div className="h-4 rounded-sm min-w-[2px] cursor-help" style={{ width: `${w}%`, background: s.color }} />
                     <span className="text-[12px] font-bold text-slate-600 whitespace-nowrap">{format(v)}</span>
                   </div>
                 );
@@ -138,7 +142,9 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
         {total === 0 ? (
           <circle cx={cx} cy={cy} r={r} fill="#f1f5f9" />
         ) : segs.map((s) => (
-          s.value > 0 && <path key={s.label} d={arcPath(cx, cy, r, s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} />
+          s.value > 0 && <path key={s.label} d={arcPath(cx, cy, r, s.start, s.end)} fill={s.color} stroke="#fff" strokeWidth={1} className="cursor-help">
+            <title>{`${s.label}: ${s.value.toLocaleString('vi-VN')} (${Math.round(s.pctNum)}%)`}</title>
+          </path>
         ))}
         {donut && <circle cx={cx} cy={cy} r={r * 0.55} fill="#fff" />}
         {total > 0 && segs.map((s) => {

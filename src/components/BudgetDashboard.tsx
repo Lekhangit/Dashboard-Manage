@@ -91,8 +91,8 @@ export function BudgetDashboard({ budget, issues }: Props) {
             <VBarGroup
               categories={byDept.map(d => d[0])}
               series={[
-                { name: 'Kế hoạch', color: '#5b9bd5', values: byDept.map(d => ty(d[1].plan)) },
-                { name: 'Thực tế', color: '#8b1a1a', values: byDept.map(d => ty(d[1].actual)) },
+                { name: 'Kế hoạch', color: '#5b9bd5', values: byDept.map(d => ty(d[1].plan)), raw: byDept.map(d => d[1].plan) },
+                { name: 'Thực tế', color: '#8b1a1a', values: byDept.map(d => ty(d[1].actual)), raw: byDept.map(d => d[1].actual) },
               ]}
             />
           </div>

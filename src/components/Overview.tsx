@@ -132,7 +132,7 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
         <ChartCard title="Hiệu Quả Ban Chỉ Huy" note="ĐVT: triệu đồng">
           <VBarGroup
             categories={pNames}
-            series={[{ name: 'BQ BCH', color: '#c0392b', values: projects.map((p) => trieu(p.avgBch)) }]}
+            series={[{ name: 'BQ BCH', color: '#c0392b', values: projects.map((p) => trieu(p.avgBch)), raw: projects.map((p) => p.avgBch) }]}
           />
         </ChartCard>
 
@@ -155,8 +155,8 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
             <VBarGroup
               categories={pNames}
               series={[
-                { name: 'Doanh thu', color: '#5b9bd5', values: projects.map((p) => trieu(p.revenue)) },
-                { name: 'IPC', color: '#8b1a1a', values: projects.map((p) => trieu(p.ipc)) },
+                { name: 'Doanh thu', color: '#5b9bd5', values: projects.map((p) => trieu(p.revenue)), raw: projects.map((p) => p.revenue) },
+                { name: 'IPC', color: '#8b1a1a', values: projects.map((p) => trieu(p.ipc)), raw: projects.map((p) => p.ipc) },
               ]}
             />
           </ChartCard>
@@ -166,8 +166,8 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
           <VBarGroup
             categories={pNames}
             series={[
-              { name: 'Ngân sách', color: '#5b9bd5', values: projects.map((p) => trieu(p.budget)) },
-              { name: 'Đã sử dụng', color: '#1f3864', values: projects.map((p) => trieu(p.budgetUsed)) },
+              { name: 'Ngân sách', color: '#5b9bd5', values: projects.map((p) => trieu(p.budget)), raw: projects.map((p) => p.budget) },
+              { name: 'Đã sử dụng', color: '#1f3864', values: projects.map((p) => trieu(p.budgetUsed)), raw: projects.map((p) => p.budgetUsed) },
             ]}
           />
         </ChartCard>

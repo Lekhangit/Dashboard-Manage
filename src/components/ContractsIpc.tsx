@@ -15,7 +15,7 @@ interface Props {
   initialTab?: 'contracts' | 'ipc';
 }
 
-export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props) {
+export function ContractsIpc({ contracts, ipc, projects, initialTab = 'contracts' }: Props) {
   const [tab, setTab] = useState<'contracts' | 'ipc'>(initialTab);
   const [proj, setProj] = useState('');
 
@@ -29,6 +29,7 @@ export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props
 
   // ---- IPC analytics (from real rows) ----
   // Số IPC theo dự án = số hiệu IPC khác nhau (loại "Tạm ứng") theo dự án.
+  // Liệt kê ĐỦ mọi dự án (kể cả dự án 0 IPC như Salacia).
   const ipcCountByProject = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const r of fIpc) {
@@ -37,8 +38,11 @@ export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props
       if (!m.has(pj)) m.set(pj, new Set());
       m.get(pj)!.add(no.toUpperCase());
     }
-    return [...m.entries()].map(([project, s]) => ({ project, count: s.size }));
-  }, [fIpc]);
+    const names = proj
+      ? [proj]
+      : (projects && projects.length ? projects.map(p => p.name) : [...new Set(ipc.map(i => (i.project || '').trim()).filter(Boolean))]);
+    return names.map(project => ({ project, count: m.get(project)?.size || 0 })).sort((a, b) => b.count - a.count);
+  }, [fIpc, ipc, projects, proj]);
 
   // Tiền đã thu (ĐÃ NHẬN) và còn phải thu (CÒN LẠI) theo tháng.
   const byMonth = useMemo(() => {
@@ -130,8 +134,8 @@ export function ContractsIpc({ contracts, ipc, initialTab = 'contracts' }: Props
               <VBarGroup
                 categories={byMonth.map(m => m[0])}
                 series={[
-                  { name: 'Đã thu', color: '#1f3864', values: byMonth.map(m => Math.round(m[1].thu / 1e8) / 10) },
-                  { name: 'Còn phải thu', color: '#8b1a1a', values: byMonth.map(m => Math.round(m[1].conlai / 1e8) / 10) },
+                  { name: 'Đã thu', color: '#1f3864', values: byMonth.map(m => Math.round(m[1].thu / 1e8) / 10), raw: byMonth.map(m => m[1].thu) },
+                  { name: 'Còn phải thu', color: '#8b1a1a', values: byMonth.map(m => Math.round(m[1].conlai / 1e8) / 10), raw: byMonth.map(m => m[1].conlai) },
                 ]}
               />
             </div>
