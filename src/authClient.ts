@@ -41,6 +41,14 @@ export const apiGetBudget    = (): Promise<BudgetItem[]> => getJson('/api/data/b
 export const apiGetIssues    = (): Promise<Issue[]>      => getJson('/api/data/issues');
 export const apiGetTodos     = (): Promise<Todo[]>       => getJson('/api/data/todos');
 export const apiGetAnalytics = (): Promise<Analytics>    => getJson('/api/data/analytics');
+// Upload Excel và import NGAY (admin) — cập nhật dashboard.
+export async function apiImportNow(file: File): Promise<{ ok: boolean; stats: any; filename: string }> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch('/api/import-now', { method: 'POST', body: fd });
+  return jsonOrThrow(res) as any;
+}
+
 export const apiGetPivot     = async (): Promise<string[][]> => {
   const rows = await getJson('/api/data/pivot');
   return (Array.isArray(rows) && rows[0] && rows[0].grid) ? rows[0].grid : [];

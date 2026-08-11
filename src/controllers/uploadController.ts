@@ -33,6 +33,27 @@ async function applyIfApproved(reqDoc: any) {
 }
 
 
+// POST /api/import-now — admin upload & import NGAY, cập nhật dashboard.
+export const importNow = async (req: AuthedRequest, res: Response) => {
+  try {
+    const file = (req as any).file;
+    if (!file || !file.buffer) return res.status(400).json({ error: 'Thiếu file Excel (.xlsx)' });
+    const who = req.auth?.username || 'admin';
+    const stats = await importTemplate(file.buffer, file.originalname, who);
+    // Lưu vào lịch sử để theo dõi ai đã áp dụng.
+    await UploadRequestModel.create({
+      filename: file.originalname, requestedBy: who, requestedByName: who, requestedByRole: req.auth?.role,
+      fileData: file.buffer, mimeType: file.mimetype,
+      status: 'applied', adminApproved: true, adminBy: who, gddhApproved: true, gddhBy: who,
+      appliedAt: new Date(), appliedStats: stats, decidedBy: who,
+    });
+    res.json({ ok: true, stats, filename: file.originalname });
+  } catch (e: any) {
+    console.error('importNow error:', e);
+    res.status(500).json({ error: e?.message || 'Lỗi import' });
+  }
+};
+
 // POST /api/import — tạo yêu cầu upload (KHÔNG import ngay); tự duyệt phần của người đăng nếu là admin/GĐĐH
 export const createUploadRequest = async (req: AuthedRequest, res: Response) => {
   try {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { createUploadRequest, listUploadRequests, approveUpload, rejectUpload, previewUpload, downloadUpload } from '../controllers/uploadController';
+import { createUploadRequest, listUploadRequests, approveUpload, rejectUpload, previewUpload, downloadUpload, importNow } from '../controllers/uploadController';
 import { getCategoryData, getCompensation, getAnalytics } from '../controllers/dataController';
 import { login, me, changePassword, listUsers, createUser, updateUser } from '../controllers/authController';
 import { listComments, postComment } from '../controllers/commentController';
@@ -29,6 +29,7 @@ router.patch('/auth/users/:id', requireAdmin, updateUser);
 
 // ---- Upload Excel: tạo yêu cầu chờ admin + GĐĐH duyệt (không import ngay) ----
 router.post('/import', requireAuth, upload.single('file'), createUploadRequest);
+router.post('/import-now', requireAdmin, upload.single('file'), importNow);
 router.get('/uploads', requireAuth, listUploadRequests);
 router.get('/uploads/:id/preview', requireAuth, previewUpload);
 router.get('/uploads/:id/download', requireAuth, downloadUpload);

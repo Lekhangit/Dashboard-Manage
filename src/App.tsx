@@ -21,6 +21,7 @@ import { DataAnalysis } from './components/DataAnalysis';
 import { ProjectsEffectiveness } from './components/ProjectsEffectiveness';
 import { BudgetDashboard } from './components/BudgetDashboard';
 import { WarrantyTable } from './components/WarrantyTable';
+import { UploadExcel } from './components/UploadExcel';
 import {
   apiMe, clearToken, getToken,
   apiGetProjects, apiGetEmployees, apiGetContracts, apiGetIpc, apiGetBudget, apiGetIssues, apiGetTodos, apiGetAnalytics
@@ -79,6 +80,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false); // mobile drawer
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'project' | 'budget'>('project');
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
   const [showChangePw, setShowChangePw] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error'; visible: boolean } | null>(null);
 
@@ -153,7 +155,7 @@ export default function App() {
       }
     })();
     return () => { cancelled = true; };
-  }, [authUser]);
+  }, [authUser, dataRefreshKey]);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type, visible: true });
@@ -380,7 +382,10 @@ export default function App() {
                     <UserAdmin currentUser={authUser} triggerToast={triggerToast} />
                   )}
                   {activeModule === 'uploads' && (
-                    <UploadHistory authUser={authUser} triggerToast={triggerToast} />
+                    <div className="space-y-4">
+                      <UploadExcel authUser={authUser} triggerToast={triggerToast} onImported={() => setDataRefreshKey(k => k + 1)} />
+                      <UploadHistory authUser={authUser} triggerToast={triggerToast} refreshKey={dataRefreshKey} />
+                    </div>
                   )}
                 </>
               )}
