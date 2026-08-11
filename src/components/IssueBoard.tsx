@@ -10,10 +10,10 @@
  * drawer with the role-gated chat.
  */
 import React, { useMemo, useState } from 'react';
-import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, List, LayoutGrid, CheckCircle2, Star } from 'lucide-react';
+import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
 import { apiListComments, apiPostComment } from '../authClient';
-import { txt, money, StatusPill, DataTable, Column, ProjectFilter } from './tableKit';
+import { txt, money, StatusPill, ProjectFilter } from './tableKit';
 
 interface Props {
   issues: Issue[];
@@ -186,7 +186,6 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
     [rawIssues],
   );
   const [board, setBoard] = useState<'chance' | 'todo'>('chance');
-  const [chanceView, setChanceView] = useState<'kanban' | 'list'>('kanban');
   const [proj, setProj] = useState('');
   const [selected, setSelected] = useState<Issue | null>(null);
   const [override, setOverride] = useState<Record<string, Lane>>({});
@@ -208,21 +207,6 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
     </button>
   );
 
-  const issueCols: Column<Issue>[] = [
-    { header: 'Ngày ghi nhận', render: r => txt(r.loggedDate) },
-    { header: 'Ngày phản hồi', align: 'right', className: 'bg-rose-50', render: r => txt(r.responseDays) },
-    { header: 'Dự án', render: r => <span className="font-semibold text-slate-700">{txt(r.project)}</span> },
-    { header: 'Người phụ trách', render: r => txt(r.assignee) },
-    { header: 'Vấn đề phát sinh', render: r => <span className="text-slate-700">{txt(r.problem)}</span> },
-    { header: 'Giải pháp hành động', render: r => <span className="text-slate-500">{txt(r.solution)}</span> },
-    { header: 'Kết quả', render: r => <span className="text-slate-500">{txt(r.result)}</span> },
-    { header: 'VO / BOQ', align: 'right', render: r => money(r.voBoq) },
-    { header: 'Ngân sách', align: 'right', render: r => money(r.budget) },
-    { header: 'Dự kiến hoàn thành', render: r => txt(r.plannedDate) },
-    { header: 'Thực tế hoàn thành', render: r => txt(r.actualDate) },
-    { header: 'Tình trạng', align: 'center', render: r => <StatusPill status={r.status} /> },
-  ];
-
   return (
     <div className="space-y-4">
       <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
@@ -230,9 +214,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
           <h3 className="font-black text-white text-sm uppercase tracking-wide text-center">
             {board === 'todo'
               ? 'Kanban Board - Quản Lý Công Việc Bản Thân'
-              : chanceView === 'list'
-                ? 'Dự Án - Phòng Bảo Hành Bảo Trì - BIM Center'
-                : 'Kanban - Chance Logs (Vấn đề dự án / BHBT / BIM)'}
+              : 'Kanban - Chance Logs (Vấn đề dự án / BHBT / BIM)'}
           </h3>
         </div>
         <div className="flex items-center justify-between border-b border-slate-100 px-2">
@@ -241,47 +223,31 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
             <TabBtn k="todo" label="Công việc bản thân" icon={CheckSquare} badge={todos.length} />
           </div>
           {board === 'chance' && (
-            <div className="flex items-center gap-2 mr-2">
+            <div className="mr-2">
               <ProjectFilter value={proj} onChange={setProj} options={projectOptions} />
-              <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1">
-                <button onClick={() => setChanceView('kanban')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'kanban' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><LayoutGrid className="w-3.5 h-3.5" /> Kanban</button>
-                <button onClick={() => setChanceView('list')} className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md ${chanceView === 'list' ? 'bg-[#104e8b] text-white' : 'text-slate-500'}`}><List className="w-3.5 h-3.5" /> Danh sách</button>
-              </div>
             </div>
           )}
         </div>
 
         <div className="p-4">
           {board === 'chance' ? (
-            chanceView === 'kanban' ? (
-              <>
-                <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>
-                <Board
-                  items={shownIssues}
-                  itemKey={issueKey}
-                  laneKey={laneForIssue}
-                  onMove={move}
-                  card={(it) => (
-                    <button onClick={() => setSelected(it)}
-                      className="w-full text-left bg-white border border-slate-200 rounded-lg p-2.5 hover:border-[#104e8b] hover:shadow-sm transition-all">
-                      <p className="text-xs font-semibold text-slate-700 line-clamp-2">{txt(it.problem)}</p>
-                      <span className="block text-[10px] text-slate-500 mt-1">DA: {txt(it.project)}</span>
-                      <span className="block text-[10px] text-slate-400 mt-0.5">{txt(it.assignee)}{it.responseDays ? ` | Tồn: ${it.responseDays} ngày` : ''}</span>
-                    </button>
-                  )}
-                />
-              </>
-            ) : (
-              <div className="[&_tbody_tr]:cursor-pointer" onClick={(e) => {
-                const tr = (e.target as HTMLElement).closest('tr');
-                if (!tr || tr.parentElement?.tagName !== 'TBODY') return;
-                const idx = Array.from(tr.parentElement.children).indexOf(tr);
-                if (shownIssues[idx]) setSelected(shownIssues[idx]);
-              }}>
-                <DataTable columns={issueCols} rows={shownIssues} minWidthClass="min-w-[1200px]" emptyLabel="Chưa có vấn đề."
-                  footer={['Total', '', '', '', '', '', '', money(shownIssues.reduce((s, r) => s + (r.voBoq || 0), 0)), money(shownIssues.reduce((s, r) => s + (r.budget || 0), 0)), '', '', `${shownIssues.length}`]} />
-              </div>
-            )
+            <>
+              <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>
+              <Board
+                items={shownIssues}
+                itemKey={issueKey}
+                laneKey={laneForIssue}
+                onMove={move}
+                card={(it) => (
+                  <button onClick={() => setSelected(it)}
+                    className="w-full text-left bg-white border border-slate-200 rounded-lg p-2.5 hover:border-[#104e8b] hover:shadow-sm transition-all">
+                    <p className="text-xs font-semibold text-slate-700 line-clamp-2">{txt(it.problem)}</p>
+                    <span className="block text-[10px] text-slate-500 mt-1">DA: {txt(it.project)}</span>
+                    <span className="block text-[10px] text-slate-400 mt-0.5">{txt(it.assignee)}{it.responseDays ? ` | Tồn: ${it.responseDays} ngày` : ''}</span>
+                  </button>
+                )}
+              />
+            </>
           ) : (
             <>
               <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>

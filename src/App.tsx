@@ -20,6 +20,7 @@ import { Compensation } from './components/Compensation';
 import { DataAnalysis } from './components/DataAnalysis';
 import { ProjectsEffectiveness } from './components/ProjectsEffectiveness';
 import { BudgetDashboard } from './components/BudgetDashboard';
+import { WarrantyTable } from './components/WarrantyTable';
 import {
   apiMe, clearToken, getToken,
   apiGetProjects, apiGetEmployees, apiGetContracts, apiGetIpc, apiGetBudget, apiGetIssues, apiGetTodos, apiGetAnalytics
@@ -43,6 +44,7 @@ import {
   Menu,
   Receipt,
   PieChart,
+  Wrench,
 } from 'lucide-react';
 
 // ---- Danh sách các phân hệ (module) hiển thị trên sidebar ----
@@ -62,6 +64,7 @@ const MODULES: ModuleDef[] = [
   { key: 'budget', label: 'Ngân Sách Dự Án', icon: DollarSign },
   { key: 'projects', label: 'Hiệu Quả Dự Án', icon: Layers },
   { key: 'issues', label: 'Chance Management', icon: AlertTriangle },
+  { key: 'warranty', label: 'Phòng Bảo Hành Bảo Trì', icon: Wrench },
   { key: 'todos', label: 'To Do List', icon: CheckCircle },
   { key: 'analytics', label: 'Data Analysic', icon: PieChart },
   // Hệ thống (giữ để vận hành; ẩn theo quyền)
@@ -358,6 +361,7 @@ export default function App() {
                   {activeModule === 'analytics' && <DataAnalysis />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
                   {activeModule === 'issues' && <IssueBoard issues={issues} todos={todos} projects={projects} authUser={authUser} />}
+                  {activeModule === 'warranty' && <WarrantyTable issues={issues} />}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}
                   {activeModule === 'compensation' && (
                     hasPerm(authUser, 'view_compensation')

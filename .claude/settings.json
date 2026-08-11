@@ -3,7 +3,17 @@
     "allow": [
       "Bash(node -e ' *)",
       "Bash(node scratch_kb.cjs)",
-      "Bash(curl -s -o /dev/null -w \"App.tsx HTTP %{http_code}\\\\n\" \"http://localhost:3000/src/App.tsx\")"
+      "Bash(curl -s -o /dev/null -w \"App.tsx HTTP %{http_code}\\\\n\" \"http://localhost:3000/src/App.tsx\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"cht01\",\"password\":\"admin123\"}')",
+      "Bash(node -pe \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\); r.token?'server on _bim OK \\(cht01 '+r.user.role+'\\)':'FAIL '+r.error\")",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'tsx|server\\\\.ts|vite|npm-cli.js.. run dev' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Milliseconds 800; \"killed all dev node procs\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('package.json valid'\\)\")",
+      "Bash(echo \"APP $?\")",
+      "Bash(node scratch_cl.cjs)",
+      "Bash(rm -f scratch_cl.cjs)",
+      "Bash(echo \"COMPILE $?\")",
+      "Bash(node scratch_naf.cjs)",
+      "Bash(rm -f scratch_naf.cjs)"
     ]
   }
 }
