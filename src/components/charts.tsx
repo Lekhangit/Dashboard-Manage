@@ -142,13 +142,13 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
         ))}
         {donut && <circle cx={cx} cy={cy} r={r * 0.55} fill="#fff" />}
         {total > 0 && segs.map((s) => {
-          if (s.pctNum < 4) return null;
+          if (s.pctNum < 5) return null;
           const mid = (s.start + s.end) / 2;
           const p = polar(cx, cy, labelR, mid);
           return (
             <text key={`l-${s.label}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
               fontSize={13} fontWeight={700} fill="#fff" style={{ pointerEvents: 'none' }}>
-              {s.value} · {Math.round(s.pctNum)}%
+              {Math.round(s.pctNum)}%
             </text>
           );
         })}
@@ -156,9 +156,9 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
       <div className="space-y-1.5">
         {segs.map((s) => (
           <div key={s.label} className="flex items-center gap-2 text-[13px] font-semibold text-slate-600">
-            <span className="w-3.5 h-3.5 rounded-sm" style={{ background: s.color }} />
-            <span className="min-w-[80px]">{s.label}</span>
-            <span className="text-slate-400">{Math.round(s.pctNum)}% · {s.value}</span>
+            <span className="w-3.5 h-3.5 rounded-sm shrink-0" style={{ background: s.color }} />
+            <span className="min-w-[86px]">{s.label}</span>
+            <span className="text-slate-400 whitespace-nowrap">{Math.round(s.pctNum)}% · {s.value.toLocaleString('vi-VN')}</span>
           </div>
         ))}
       </div>

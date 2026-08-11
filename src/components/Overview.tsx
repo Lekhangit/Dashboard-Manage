@@ -30,9 +30,9 @@ const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; s
     <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
       <Icon className="w-8 h-8" />
     </div>
-    <div className="min-w-0">
-      <span className="block text-xs uppercase font-extrabold tracking-wider text-slate-400">{label}</span>
-      <span className="block text-2xl xl:text-3xl font-black leading-tight" style={{ color: accent }}>{value}</span>
+    <div className="min-w-0 flex-1">
+      <span className="block text-xs uppercase font-extrabold tracking-wider text-slate-400 truncate">{label}</span>
+      <span className="block text-lg xl:text-xl 2xl:text-2xl font-black leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: accent }} title={value}>{value}</span>
       {sub && <span className="block text-xs text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>

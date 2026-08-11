@@ -104,7 +104,7 @@ export function BudgetDashboard({ budget, issues }: Props) {
 
         <div className="lg:col-span-2">
           <SectionCard title="Tỷ Trọng Ngân Sách Theo Công Trình">
-            <div className="p-4"><PieChart data={byProject} size={190} /></div>
+            <div className="p-4"><PieChart data={byProject} size={300} /></div>
           </SectionCard>
         </div>
 
