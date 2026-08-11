@@ -16,7 +16,7 @@ interface Props {
   projects?: Project[];
 }
 
-const trieu = (n: number) => Math.round((n || 0) / 1e6);
+const ty = (n: number) => Math.round((n || 0) / 1e8) / 10; // -> tỉ đồng, 1 số lẻ
 
 export function BudgetDashboard({ budget, issues }: Props) {
   // 1. Tỷ trọng ngân sách theo hạng mục (theo Kế hoạch; % trên tổng).
@@ -86,13 +86,13 @@ export function BudgetDashboard({ budget, issues }: Props) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Ngân Sách Theo Phòng Ban - KH vs TT" right={<span className="text-[10px] font-semibold text-slate-400">ĐVT: triệu đồng</span>}>
+        <SectionCard title="Ngân Sách Theo Phòng Ban - KH vs TT" right={<span className="text-[10px] font-semibold text-slate-400">ĐVT: tỉ đồng</span>}>
           <div className="p-4">
             <VBarGroup
               categories={byDept.map(d => d[0])}
               series={[
-                { name: 'Kế hoạch', color: '#5b9bd5', values: byDept.map(d => trieu(d[1].plan)) },
-                { name: 'Thực tế', color: '#8b1a1a', values: byDept.map(d => trieu(d[1].actual)) },
+                { name: 'Kế hoạch', color: '#5b9bd5', values: byDept.map(d => ty(d[1].plan)) },
+                { name: 'Thực tế', color: '#8b1a1a', values: byDept.map(d => ty(d[1].actual)) },
               ]}
             />
           </div>
@@ -104,7 +104,7 @@ export function BudgetDashboard({ budget, issues }: Props) {
 
         <div className="lg:col-span-2">
           <SectionCard title="Tỷ Trọng Ngân Sách Theo Công Trình">
-            <div className="p-4"><PieChart data={byProject} size={300} /></div>
+            <div className="p-4"><PieChart data={byProject} size={190} /></div>
           </SectionCard>
         </div>
 
