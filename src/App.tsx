@@ -73,10 +73,11 @@ const MODULES: ModuleDef[] = [
 
 export default function App() {
   // ---- Global UI state ----
-  const [activeModule, setActiveModule] = useState<string>('overview');
+  // Điều hướng được lưu vào localStorage để reload không văng về Dashboard.
+  const [activeModule, setActiveModule] = useState<string>(() => localStorage.getItem('tpl_active_module') || 'overview');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false); // mobile drawer
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [dashboardTab, setDashboardTab] = useState<'project' | 'budget'>('project');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(() => localStorage.getItem('tpl_selected_project') || null);
+  const [dashboardTab, setDashboardTab] = useState<'project' | 'budget'>(() => (localStorage.getItem('tpl_dashboard_tab') as 'project' | 'budget') || 'project');
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
   const [showChangePw, setShowChangePw] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error'; visible: boolean } | null>(null);
@@ -113,6 +114,7 @@ export default function App() {
 
   const handleLogout = () => {
     clearToken();
+    ['tpl_active_module', 'tpl_selected_project', 'tpl_dashboard_tab'].forEach(k => localStorage.removeItem(k));
     setAuthUser(null);
     setActiveModule('overview');
     setSelectedProjectId(null);
@@ -153,6 +155,26 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [authUser, dataRefreshKey]);
+
+  // Lưu điều hướng để reload giữ nguyên trang / dự án / tab dashboard.
+  useEffect(() => { localStorage.setItem('tpl_active_module', activeModule); }, [activeModule]);
+  useEffect(() => { localStorage.setItem('tpl_dashboard_tab', dashboardTab); }, [dashboardTab]);
+  useEffect(() => {
+    if (selectedProjectId) localStorage.setItem('tpl_selected_project', selectedProjectId);
+    else localStorage.removeItem('tpl_selected_project');
+  }, [selectedProjectId]);
+
+  // Sau khi biết quyền: nếu trang đã lưu là trang user không được phép -> về Dashboard.
+  useEffect(() => {
+    if (!authUser) return;
+    const allowed = MODULES.filter(m => {
+      if (m.adminOnly && authUser.role !== 'admin') return false;
+      if (m.perm && !hasPerm(authUser, m.perm)) return false;
+      return true;
+    }).map(m => m.key);
+    if (!allowed.includes(activeModule)) setActiveModule('overview');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser]);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type, visible: true });

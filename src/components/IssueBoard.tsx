@@ -248,8 +248,12 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
     () => [...rawIssues].sort((a, b) => String(a.loggedDate || '').localeCompare(String(b.loggedDate || ''))),
     [rawIssues],
   );
-  const [board, setBoard] = useState<'chance' | 'todo'>('chance');
-  const [proj, setProj] = useState('');
+  const [board, setBoard] = useState<'chance' | 'todo'>(() => (localStorage.getItem('tpl_kanban_board') as 'chance' | 'todo') || 'chance');
+  const [proj, setProj] = useState(() => localStorage.getItem('tpl_kanban_proj') || '');
+  useEffect(() => { localStorage.setItem('tpl_kanban_board', board); }, [board]);
+  useEffect(() => {
+    if (proj) localStorage.setItem('tpl_kanban_proj', proj); else localStorage.removeItem('tpl_kanban_proj');
+  }, [proj]);
   const [selected, setSelected] = useState<Issue | null>(null);
   const [override, setOverride] = useState<Record<string, Lane>>({});
   const [canUndo, setCanUndo] = useState(false);
