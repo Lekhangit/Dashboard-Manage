@@ -136,6 +136,17 @@ function IssueDetail({ issue, authUser, onClose }: { issue: Issue; authUser?: Au
   );
 }
 
+// Phát quang thẻ vừa kéo trong 60s — lưu thời điểm kéo vào localStorage để
+// sau khi reload vẫn tiếp tục sáng đúng phần thời gian còn lại (không mất khi F5).
+const GLOW_MS = 60000;
+const GLOW_STORE_KEY = 'tpl_kanban_glow';
+const readGlowStore = (): Record<string, number> => {
+  try { return JSON.parse(localStorage.getItem(GLOW_STORE_KEY) || '{}') || {}; } catch { return {}; }
+};
+const writeGlowStore = (s: Record<string, number>) => {
+  try { localStorage.setItem(GLOW_STORE_KEY, JSON.stringify(s)); } catch { /* ignore quota */ }
+};
+
 // Generic drag-and-drop Kanban.
 function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   items: T[];
@@ -147,10 +158,36 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   const [dragOver, setDragOver] = useState<Lane | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [glow, setGlow] = useState<Record<string, boolean>>({}); // thẻ vừa kéo -> phát quang 1 phút
-  const markGlow = (k: string) => {
-    setGlow(g => ({ ...g, [k]: true }));
-    setTimeout(() => setGlow(g => { const n = { ...g }; delete n[k]; return n; }), 60000);
+  const glowTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const clearGlow = (k: string) => {
+    setGlow(g => { const n = { ...g }; delete n[k]; return n; });
+    const s = readGlowStore(); delete s[k]; writeGlowStore(s);
   };
+  const scheduleGlow = (k: string, remaining: number) => {
+    if (glowTimers.current[k]) clearTimeout(glowTimers.current[k]);
+    glowTimers.current[k] = setTimeout(() => clearGlow(k), remaining);
+  };
+  const markGlow = (k: string) => {
+    const s = readGlowStore(); s[k] = Date.now(); writeGlowStore(s);
+    setGlow(g => ({ ...g, [k]: true }));
+    scheduleGlow(k, GLOW_MS);
+  };
+  // Khôi phục phát quang sau khi reload: thẻ nào còn trong 60s thì sáng tiếp phần còn lại.
+  useEffect(() => {
+    const store = readGlowStore();
+    const now = Date.now();
+    const active: Record<string, boolean> = {};
+    let changed = false;
+    for (const [k, ts] of Object.entries(store)) {
+      const remaining = GLOW_MS - (now - ts);
+      if (remaining > 0) { active[k] = true; scheduleGlow(k, remaining); }
+      else { delete store[k]; changed = true; }
+    }
+    if (Object.keys(active).length) setGlow(g => ({ ...g, ...active }));
+    if (changed) writeGlowStore(store);
+    return () => { Object.values(glowTimers.current).forEach(t => clearTimeout(t)); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const lanes = useMemo(() => {
     const map: Record<Lane, T[]> = { Opened: [], Pending: [], 'On-going': [], Closed: [] };
     for (const it of items) map[laneKey(it)].push(it);
