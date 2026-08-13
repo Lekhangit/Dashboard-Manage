@@ -31,8 +31,8 @@ const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; s
       <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
     </div>
     <div className="min-w-0 flex-1">
-      <span className="block text-[11px] sm:text-xs uppercase font-extrabold tracking-wider text-slate-400 leading-tight break-words">{label}</span>
-      <span className="block text-base sm:text-lg xl:text-2xl font-black leading-tight break-words" style={{ color: accent }} title={value}>{value}</span>
+      <span className="block text-[11px] sm:text-xs uppercase font-extrabold tracking-wider text-slate-400 leading-tight break-words sm:truncate sm:whitespace-nowrap">{label}</span>
+      <span className="block text-base sm:text-xl xl:text-2xl font-black leading-tight break-words sm:whitespace-nowrap" style={{ color: accent }} title={value}>{value}</span>
       {sub && <span className="block text-xs text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>
