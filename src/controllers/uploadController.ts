@@ -4,6 +4,7 @@ import fs from 'fs';
 import { UploadRequestModel, UserModel } from '../models';
 import { importTemplate } from '../services/templateImportService';
 import { AuthedRequest } from '../middleware/auth';
+import { broadcast, RT } from '../realtime';
 
 const publicReq = (r: any) => ({
   id: String(r._id),
@@ -29,6 +30,7 @@ async function applyIfApproved(reqDoc: any) {
   reqDoc.appliedAt = new Date();
   reqDoc.appliedStats = stats;
   await reqDoc.save();
+  broadcast(RT.dataReload); // dữ liệu vừa thay -> mọi client tải lại
   return reqDoc;
 }
 
@@ -47,6 +49,7 @@ export const importNow = async (req: AuthedRequest, res: Response) => {
       status: 'applied', adminApproved: true, adminBy: who, gddhApproved: true, gddhBy: who,
       appliedAt: new Date(), appliedStats: stats, decidedBy: who,
     });
+    broadcast(RT.dataReload); // dữ liệu vừa thay -> mọi client tải lại
     res.json({ ok: true, stats, filename: file.originalname });
   } catch (e: any) {
     console.error('importNow error:', e);

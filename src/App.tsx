@@ -25,6 +25,8 @@ import {
   apiMe, clearToken, getToken,
   apiGetProjects, apiGetEmployees, apiGetContracts, apiGetIpc, apiGetBudget, apiGetIssues, apiGetTodos, apiGetAnalytics
 } from './authClient';
+import { getSocket } from './realtimeClient';
+import { RT } from './realtimeEvents';
 import {
   LayoutDashboard,
   Layers,
@@ -155,6 +157,27 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [authUser, dataRefreshKey]);
+
+  // Realtime (socket.io): đồng bộ nhiều người mà không cần reload.
+  //  • issue/todo đổi cột -> cập nhật tại chỗ cho mọi client
+  //  • import Excel -> mọi client tải lại toàn bộ dữ liệu
+  useEffect(() => {
+    if (!authUser) return;
+    const socket = getSocket();
+    const onIssue = (p: { id: string; status: string }) =>
+      setIssues(prev => prev.map(i => (i.id === p.id ? { ...i, status: p.status } : i)));
+    const onTodo = (p: { tt: number; content: string; status: string }) =>
+      setTodos(prev => prev.map(t => (t.tt === p.tt && (t.content || '') === (p.content || '') ? { ...t, status: p.status } : t)));
+    const onReload = () => setDataRefreshKey(k => k + 1);
+    socket.on(RT.issueStatus, onIssue);
+    socket.on(RT.todoStatus, onTodo);
+    socket.on(RT.dataReload, onReload);
+    return () => {
+      socket.off(RT.issueStatus, onIssue);
+      socket.off(RT.todoStatus, onTodo);
+      socket.off(RT.dataReload, onReload);
+    };
+  }, [authUser]);
 
   // Lưu điều hướng để reload giữ nguyên trang / dự án / tab dashboard.
   useEffect(() => { localStorage.setItem('tpl_active_module', activeModule); }, [activeModule]);

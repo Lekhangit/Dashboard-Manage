@@ -3,6 +3,7 @@ import { ProjectModel, EmployeeModel, ContractModel, IpcModel, BudgetItemModel,
   IssueModel, TodoModel, ActivityLogModel, UserModel, PivotModel } from '../models';
 import { userHasPermission } from '../services/authService';
 import { computeAnalytics } from '../services/templateImportService';
+import { broadcast, RT } from '../realtime';
 
 // Map the frontend category name -> its typed collection (lowercase keys).
 const MODELS: Record<string, any> = {
@@ -86,6 +87,7 @@ export const updateIssueStatus = async (req: Request, res: Response) => {
     if (!KANBAN_LANES.includes(status)) return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
     const r = await IssueModel.updateOne({ id }, { $set: { status } });
     if (!r.matchedCount) return res.status(404).json({ error: 'Không tìm thấy vấn đề' });
+    broadcast(RT.issueStatus, { id, status }); // đồng bộ realtime cho client khác
     res.json({ ok: true, id, status });
   } catch (e: any) {
     console.error('Update issue status error:', e);
@@ -104,6 +106,7 @@ export const updateTodoStatus = async (req: Request, res: Response) => {
     const filter: any = content ? { tt, content } : { tt };
     const r = await TodoModel.updateOne(filter, { $set: { status } });
     if (!r.matchedCount) return res.status(404).json({ error: 'Không tìm thấy công việc' });
+    broadcast(RT.todoStatus, { tt, content, status }); // đồng bộ realtime cho client khác
     res.json({ ok: true, tt, status });
   } catch (e: any) {
     console.error('Update todo status error:', e);

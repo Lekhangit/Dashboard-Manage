@@ -4,13 +4,16 @@
  */
 
 import express from 'express';
+import http from 'http';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import { Server as SocketServer } from 'socket.io';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
 import { connectDB } from './src/database';
 import apiRoutes from './src/routes/api';
 import { seedAdmin } from './src/services/authService';
+import { setIO } from './src/realtime';
 
 dotenv.config();
 
@@ -127,8 +130,20 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT} (Express + Vite)`);
+  // HTTP server + socket.io (đồng bộ realtime nhiều người: Kanban, dashboard…)
+  const httpServer = http.createServer(app);
+  const io = new SocketServer(httpServer, {
+    path: '/socket.io',
+    cors: { origin: true },
+  });
+  io.on('connection', (socket) => {
+    console.log('Realtime client connected:', socket.id);
+    socket.on('disconnect', () => console.log('Realtime client disconnected:', socket.id));
+  });
+  setIO(io);
+
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT} (Express + Vite + socket.io)`);
   });
 }
 
