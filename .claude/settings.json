@@ -13,7 +13,23 @@
       "Bash(rm -f scratch_cl.cjs)",
       "Bash(echo \"COMPILE $?\")",
       "Bash(node scratch_naf.cjs)",
-      "Bash(rm -f scratch_naf.cjs)"
+      "Bash(rm -f scratch_naf.cjs)",
+      "Bash(node scratch_find.cjs)",
+      "Bash(node scratch_dl.cjs)",
+      "Bash(rm -f scratch_dl.cjs)",
+      "Bash(node scratch_proj.cjs)",
+      "Bash(rm -f scratch_proj.cjs)",
+      "Bash(node -pe \"JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\).find\\(c=>c.project==='NaFoods'\\).issueDate\")",
+      "Bash(node -pe \"'signedRevenue = '+JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\).totals.signedRevenue\")",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'tsx|server\\\\.ts|vite|npm-cli.js.. run dev' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Milliseconds 700; \"killed\")",
+      "Bash(echo \"SERVER $?\")",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'tsx|server\\\\.ts|vite' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; Start-Sleep -Milliseconds 700; \"killed\")",
+      "Bash(sed -E 's#\\(://[^:]+:\\)[^@]+@#\\\\1***@#')",
+      "Bash(grep -niE \"secret|jwt|hardcod|'[A-Za-z0-9]{16,}'\" src/services/authService.ts)",
+      "Bash(git merge *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(grep -iE \"\\\\.xlsx$|^\\\\.env$|uploads/\")"
     ]
   }
 }
