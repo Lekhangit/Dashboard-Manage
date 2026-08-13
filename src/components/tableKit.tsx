@@ -88,18 +88,19 @@ export interface Column<T> {
 const alignClass = (a?: 'left' | 'right' | 'center') =>
   a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '';
 
-export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer }: {
+export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer, maxHeightClass }: {
   columns: Column<T>[];
   rows: T[];
   minWidthClass: string;
   emptyLabel: string;
   footer?: React.ReactNode[]; // one cell per column; renders a Total row
+  maxHeightClass?: string;    // bật cuộn dọc + header dính (vd 'max-h-[70vh]')
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-auto ${maxHeightClass || ''}`}>
       <table className={`w-full text-left border-collapse text-xs ${minWidthClass}`}>
         <thead>
-          <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100">
+          <tr className={`bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100 ${maxHeightClass ? 'sticky top-0 z-10' : ''}`}>
             {columns.map((c, i) => (
               <th key={i} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.header}</th>
             ))}

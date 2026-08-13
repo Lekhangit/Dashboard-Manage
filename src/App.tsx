@@ -15,9 +15,8 @@ import { Resource } from './components/Resource';
 import { ContractsIpc } from './components/ContractsIpc';
 import { Budget } from './components/Budget';
 import { IssueBoard } from './components/IssueBoard';
-import { Todos } from './components/Todos';
+import { Todos } from './components/Todos'; // ẩn khỏi menu (còn giữ để phát triển thêm)
 import { Compensation } from './components/Compensation';
-import { DataAnalysis } from './components/DataAnalysis';
 import { ProjectsEffectiveness } from './components/ProjectsEffectiveness';
 import { BudgetDashboard } from './components/BudgetDashboard';
 import { WarrantyTable } from './components/WarrantyTable';
@@ -66,8 +65,6 @@ const MODULES: ModuleDef[] = [
   { key: 'projects', label: 'Hiệu Quả Dự Án', icon: Layers },
   { key: 'issues', label: 'Chance Management', icon: AlertTriangle },
   { key: 'warranty', label: 'Phòng Bảo Hành Bảo Trì', icon: Wrench },
-  { key: 'todos', label: 'To Do List', icon: CheckCircle },
-  { key: 'analytics', label: 'Data Analysic', icon: PieChart },
   // Hệ thống (giữ để vận hành; ẩn theo quyền)
   { key: 'compensation', label: 'Chi phí & Lương', icon: Wallet, perm: 'view_compensation' },
   { key: 'users', label: 'Quản lý tài khoản', icon: UserCog, adminOnly: true },
@@ -360,10 +357,10 @@ export default function App() {
                   {activeModule === 'resource' && <Resource employees={employees} projects={projects} authUser={authUser} />}
                   {activeModule === 'contracts' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="contracts" />}
                   {activeModule === 'ipc' && <ContractsIpc contracts={contracts} ipc={ipc} projects={projects} initialTab="ipc" />}
-                  {activeModule === 'analytics' && <DataAnalysis />}
                   {activeModule === 'budget' && <Budget budget={budget} projects={projects} />}
                   {activeModule === 'issues' && <IssueBoard issues={issues} todos={todos} projects={projects} authUser={authUser} />}
                   {activeModule === 'warranty' && <WarrantyTable />}
+                  {/* To Do List: tạm ẩn khỏi menu, giữ route để phát triển thêm */}
                   {activeModule === 'todos' && <Todos todos={todos} projects={projects} />}
                   {activeModule === 'compensation' && (
                     hasPerm(authUser, 'view_compensation')

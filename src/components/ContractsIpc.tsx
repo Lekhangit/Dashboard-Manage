@@ -155,9 +155,9 @@ export function ContractsIpc({ contracts, ipc, projects, initialTab = 'contracts
           <TabBtn k="ipc" label="IPC" icon={Wallet} badge={fIpc.length} />
         </div>
         {tab === 'contracts'
-          ? <DataTable columns={contractCols} rows={fContracts} minWidthClass="min-w-[900px]" emptyLabel="Chưa có hợp đồng."
+          ? <DataTable columns={contractCols} rows={fContracts} minWidthClass="min-w-[900px]" maxHeightClass="max-h-[68vh]" emptyLabel="Chưa có hợp đồng."
               footer={['Total', '', '', money(fContracts.reduce((s, c) => s + (c.amount || 0), 0)), money(fContracts.reduce((s, c) => s + (c.budget || 0), 0)), '', '']} />
-          : <DataTable columns={ipcCols} rows={fIpc} minWidthClass="min-w-[1100px]" emptyLabel="Chưa có IPC."
+          : <DataTable columns={ipcCols} rows={fIpc} minWidthClass="min-w-[1100px]" maxHeightClass="max-h-[68vh]" emptyLabel="Chưa có IPC."
               footer={['Total', '', '', '',
                 money(fIpc.reduce((s, r) => s + (r.amount || 0), 0)),
                 money(fIpc.reduce((s, r) => s + (r.vat || 0), 0)),

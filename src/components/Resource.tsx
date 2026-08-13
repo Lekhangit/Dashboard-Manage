@@ -141,10 +141,10 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
 
       {/* Table */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[68vh]">
           <table className={`w-full text-left border-collapse text-xs ${showSalary ? 'min-w-[1800px]' : 'min-w-[1300px]'}`}>
             <thead>
-              <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100">
+              <tr className="bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100 sticky top-0 z-10">
                 {columns.map((c, i) => (
                   <th key={i} className={`py-3 px-4 ${alignClass(c.align)}`}>{c.header}</th>
                 ))}

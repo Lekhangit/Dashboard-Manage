@@ -66,6 +66,7 @@ export function Budget({ budget }: Props) {
           columns={cols}
           rows={rows}
           minWidthClass="min-w-[1000px]"
+          maxHeightClass="max-h-[68vh]"
           emptyLabel="Chưa có dữ liệu ngân sách."
           footer={(() => {
             const plan = rows.reduce((s, r) => s + (r.plan || 0), 0);
