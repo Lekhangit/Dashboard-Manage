@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Hiệu ứng phát quang cho thẻ Kanban vừa được kéo thành công (~1 phút) */
+@keyframes kanbanGlow {
+  0%, 100% { box-shadow: 0 0 8px 1px rgba(16, 185, 129, 0.45); }
+  50%      { box-shadow: 0 0 20px 6px rgba(16, 185, 129, 0.85); }
+}
+.kanban-glow { animation: kanbanGlow 1.4s ease-in-out infinite; }

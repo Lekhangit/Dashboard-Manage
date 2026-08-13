@@ -145,6 +145,11 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
 }) {
   const [dragOver, setDragOver] = useState<Lane | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [glow, setGlow] = useState<Record<string, boolean>>({}); // thẻ vừa kéo -> phát quang 1 phút
+  const markGlow = (k: string) => {
+    setGlow(g => ({ ...g, [k]: true }));
+    setTimeout(() => setGlow(g => { const n = { ...g }; delete n[k]; return n; }), 60000);
+  };
   const lanes = useMemo(() => {
     const map: Record<Lane, T[]> = { Opened: [], Pending: [], 'On-going': [], Closed: [] };
     for (const it of items) map[laneKey(it)].push(it);
@@ -160,7 +165,7 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
             key={lane}
             onDragOver={(e) => { e.preventDefault(); setDragOver(lane); }}
             onDragLeave={() => setDragOver(l => (l === lane ? null : l))}
-            onDrop={(e) => { e.preventDefault(); const k = e.dataTransfer.getData('text/plain'); if (k) onMove(k, lane); setDragOver(null); }}
+            onDrop={(e) => { e.preventDefault(); const k = e.dataTransfer.getData('text/plain'); if (k) { onMove(k, lane); markGlow(k); } setDragOver(null); }}
             className={`rounded-lg overflow-hidden border self-start ${dragOver === lane ? 'border-[#104e8b] ring-2 ring-[#104e8b]/30' : 'border-slate-200'}`}
           >
             <button
@@ -174,13 +179,16 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
             <div className="px-2 py-1.5 text-center text-[11px] font-bold text-slate-500 bg-slate-50 border-b border-slate-200">{lanes[lane].length} việc</div>
             {!isCollapsed && (
               <div className={`p-2 space-y-2 min-h-[140px] max-h-[62vh] overflow-y-auto ${laneBody[lane]}`}>
-                {lanes[lane].map((it, i) => (
+                {lanes[lane].map((it, i) => {
+                  const isGlow = !!glow[itemKey(it)];
+                  return (
                   <div key={itemKey(it)} draggable
                     onDragStart={(e) => { e.dataTransfer.setData('text/plain', itemKey(it)); e.dataTransfer.effectAllowed = 'move'; }}
-                    className="cursor-grab active:cursor-grabbing">
+                    className={`cursor-grab active:cursor-grabbing rounded-lg transition-all duration-500 ${isGlow ? 'ring-2 ring-emerald-400 shadow-[0_0_14px_3px_rgba(52,211,153,0.65)] kanban-glow' : ''}`}>
                     {card(it, i)}
                   </div>
-                ))}
+                  );
+                })}
                 {lanes[lane].length === 0 && <p className="text-[11px] text-slate-300 italic text-center py-4">—</p>}
               </div>
             )}
