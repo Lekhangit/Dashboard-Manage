@@ -108,8 +108,8 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
   return (
     <div className="space-y-4">
       {/* Filter bar */}
-      <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-4 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+        <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <input
             type="text"
@@ -123,7 +123,7 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
         <select
           value={dept}
           onChange={(e) => setDept(e.target.value)}
-          className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-[#104e8b] transition-colors"
+          className="w-full sm:w-auto min-w-0 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-[#104e8b] transition-colors"
         >
           <option value="all">Tất cả phòng ban</option>
           {departments.map(d => <option key={d} value={d}>{d}</option>)}
@@ -132,7 +132,7 @@ export const Resource: React.FC<ResourceProps> = ({ employees, authUser }) => {
         <select
           value={proj}
           onChange={(e) => setProj(e.target.value)}
-          className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-[#104e8b] transition-colors"
+          className="w-full sm:w-auto min-w-0 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-[#104e8b] transition-colors"
         >
           <option value="all">Tất cả dự án</option>
           {projectNames.map(p => <option key={p} value={p}>{p}</option>)}

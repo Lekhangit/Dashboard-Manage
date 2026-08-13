@@ -195,7 +195,7 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   }, [items, laneKey]);
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-4 gap-3 min-w-[900px]">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 min-w-[680px] sm:min-w-[900px]">
         {LANES.map(lane => {
           const isCollapsed = !!collapsed[lane];
           return (
@@ -342,7 +342,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
 
   const TabBtn = ({ k, label, icon: Icon, badge }: { k: 'chance' | 'todo'; label: string; icon: any; badge: number }) => (
     <button onClick={() => setBoard(k)}
-      className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${board === k ? 'border-[#104e8b] text-[#104e8b]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+      className={`flex items-center gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold border-b-2 transition-colors ${board === k ? 'border-[#104e8b] text-[#104e8b]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
       <Icon className="w-4 h-4" /> {label}
       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{badge}</span>
     </button>
@@ -358,7 +358,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
               : 'Kanban - Chance Logs (Vấn đề dự án / BHBT / BIM)'}
           </h3>
         </div>
-        <div className="flex items-center justify-between border-b border-slate-100 px-2">
+        <div className="flex flex-wrap items-center justify-between gap-y-1 border-b border-slate-100 px-2 py-1.5 sm:py-0">
           <div className="flex">
             <TabBtn k="chance" label="Chance Logs" icon={AlertTriangle} badge={issues.length} />
             <TabBtn k="todo" label="Công việc bản thân" icon={CheckSquare} badge={todos.length} />

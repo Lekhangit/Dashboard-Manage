@@ -78,8 +78,8 @@ export const StatCard: React.FC<{ icon: any; label: string; value: string; accen
       <Icon className="w-5 h-5" />
     </div>
     <div className="min-w-0">
-      <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400 truncate">{label}</span>
-      <span className={`block text-lg font-black truncate ${accent || 'text-slate-800'}`}>{value}</span>
+      <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-400 leading-tight break-words sm:truncate sm:whitespace-nowrap">{label}</span>
+      <span className={`block text-base sm:text-lg font-black break-words sm:truncate ${accent || 'text-slate-800'}`}>{value}</span>
     </div>
   </div>
 );
@@ -108,7 +108,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer,
         <thead>
           <tr className={`bg-slate-50 text-slate-400 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-100 ${maxHeightClass ? 'sticky top-0 z-10' : ''}`}>
             {columns.map((c, i) => (
-              <th key={i} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.header}</th>
+              <th key={i} className={`py-2.5 px-3 sm:py-3 sm:px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.header}</th>
             ))}
           </tr>
         </thead>
@@ -116,7 +116,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer,
           {rows.map((row, idx) => (
             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
               {columns.map((c, ci) => (
-                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.render(row)}</td>
+                <td key={ci} className={`py-2.5 px-3 sm:py-3 sm:px-4 ${alignClass(c.align)} ${c.className || ''}`}>{c.render(row)}</td>
               ))}
             </tr>
           ))}
@@ -128,7 +128,7 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer,
           <tfoot>
             <tr className="bg-slate-100 font-black text-slate-800 border-t-2 border-slate-300">
               {columns.map((c, ci) => (
-                <td key={ci} className={`py-3 px-4 ${alignClass(c.align)} ${c.className || ''}`}>{footer[ci]}</td>
+                <td key={ci} className={`py-2.5 px-3 sm:py-3 sm:px-4 ${alignClass(c.align)} ${c.className || ''}`}>{footer[ci]}</td>
               ))}
             </tr>
           </tfoot>
@@ -143,8 +143,8 @@ export const SectionCard: React.FC<{ title: string; right?: React.ReactNode; chi
   title, right, children, className,
 }) => (
   <div className={`bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden ${className || ''}`}>
-    <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex justify-between items-center gap-3">
-      <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">{title}</h3>
+    <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex flex-wrap justify-between items-center gap-2 sm:gap-3">
+      <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider min-w-0">{title}</h3>
       {right}
     </div>
     {children}

@@ -380,7 +380,7 @@ export default function App() {
                 <>
                   {activeModule === 'overview' && (
                     <div className="space-y-4">
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         {([['project', 'Khối Dự Án'], ['budget', 'Ngân Sách Dự Án']] as const).map(([k, label]) => (
                           <button
                             key={k}
@@ -436,7 +436,7 @@ export default function App() {
         </div>
 
         {/* Footer info branding block */}
-        <footer className="py-4 border-t border-slate-100 text-center text-[10px] font-extrabold text-slate-400 uppercase tracking-widest select-none bg-slate-50/50">
+        <footer className="py-4 px-4 border-t border-slate-100 text-center text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-widest select-none bg-slate-50/50">
           Corporate Enterprise Construction Project Management System • TAN PHAT LONG © 2026
         </footer>
       </main>
@@ -451,7 +451,7 @@ export default function App() {
 
       {/* GLOBAL NOTIFICATION TOAST OVERLAY */}
       {toast && toast.visible && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center justify-between gap-4 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl border border-slate-800 animate-in fade-in slide-in-from-bottom duration-300 w-full max-w-sm">
+        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 flex items-center justify-between gap-4 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl border border-slate-800 animate-in fade-in slide-in-from-bottom duration-300 w-auto sm:w-full sm:max-w-sm">
           <div className="flex items-center gap-2">
             <CheckCircle className={`w-4 h-4 ${toast.type === 'error' ? 'text-rose-500' : 'text-emerald-500'}`} />
             <p className="font-bold">{toast.message}</p>

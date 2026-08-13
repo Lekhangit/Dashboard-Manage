@@ -90,7 +90,7 @@ export function Budget({ budget }: Props) {
             },
           ]}
           rows={byDept}
-          minWidthClass="min-w-[560px]"
+          minWidthClass="min-w-0 sm:min-w-[560px]"
           emptyLabel="Chưa có dữ liệu."
         />
       </SectionCard>

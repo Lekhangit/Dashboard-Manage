@@ -24,8 +24,8 @@ function useHoverTip() {
     <div style={{
       position: 'fixed', left: Math.min(tip.x + 14, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 240),
       top: tip.y + 14, zIndex: 70, background: '#0f172a', color: '#fff', padding: '5px 10px',
-      borderRadius: 6, fontSize: 12, fontWeight: 600, pointerEvents: 'none', whiteSpace: 'nowrap',
-      boxShadow: '0 6px 16px rgba(0,0,0,.3)',
+      borderRadius: 6, fontSize: 12, fontWeight: 600, pointerEvents: 'none', whiteSpace: 'normal',
+      maxWidth: 'calc(100vw - 24px)', boxShadow: '0 6px 16px rgba(0,0,0,.3)',
     }}>{tip.text}</div>
   ) : null;
   return { show, clear, node };
@@ -112,7 +112,7 @@ export const HBarGroup: React.FC<{
       <div className="space-y-2.5">
         {categories.map((cat, ci) => (
           <div key={ci} className="flex items-center gap-2">
-            <span className="w-32 shrink-0 text-[12px] font-semibold text-slate-600 text-right truncate">{cat}</span>
+            <span className="w-20 sm:w-32 shrink-0 text-[11px] sm:text-[12px] font-semibold text-slate-600 text-right leading-tight break-words sm:truncate sm:break-normal">{cat}</span>
             <div className="flex-1 space-y-1">
               {series.map((s) => {
                 const v = s.values[ci] || 0;
@@ -161,7 +161,7 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
   return (
     <div className="flex items-center gap-4 flex-wrap justify-center">
       {t.node}
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="max-w-full h-auto">
         {total === 0 ? (
           <circle cx={cx} cy={cy} r={r} fill="#f1f5f9" />
         ) : segs.map((s) => (
@@ -181,12 +181,12 @@ export const PieChart: React.FC<{ data: Slice[]; donut?: boolean; size?: number 
           );
         })}
       </svg>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 w-full sm:w-auto min-w-0">
         {segs.map((s) => (
-          <div key={s.label} className="flex items-center gap-2 text-[13px] font-semibold text-slate-600">
-            <span className="w-3.5 h-3.5 rounded-sm shrink-0" style={{ background: s.color }} />
-            <span className="min-w-[86px]">{s.label}</span>
-            <span className="text-slate-400 whitespace-nowrap">{Math.round(s.pctNum)}% · {s.value.toLocaleString('vi-VN')}</span>
+          <div key={s.label} className="flex items-start sm:items-center gap-2 text-[12px] sm:text-[13px] font-semibold text-slate-600">
+            <span className="w-3.5 h-3.5 rounded-sm shrink-0 mt-0.5 sm:mt-0" style={{ background: s.color }} />
+            <span className="min-w-0 sm:min-w-[86px] break-words">{s.label}</span>
+            <span className="text-slate-400 break-all sm:break-normal sm:whitespace-nowrap">{Math.round(s.pctNum)}% · {s.value.toLocaleString('vi-VN')}</span>
           </div>
         ))}
       </div>
@@ -209,7 +209,7 @@ export const HStackedBar: React.FC<{
       <div className="space-y-2">
         {categories.map((cat, ci) => (
           <div key={ci} className="flex items-center gap-2">
-            <span className="w-36 shrink-0 text-[12px] font-semibold text-slate-600 text-right truncate">{cat}</span>
+            <span className="w-24 sm:w-36 shrink-0 text-[11px] sm:text-[12px] font-semibold text-slate-600 text-right leading-tight break-words sm:truncate sm:break-normal">{cat}</span>
             <div className="flex-1 flex items-center h-5 rounded-sm overflow-hidden bg-slate-50">
               {series.map((s) => {
                 const v = s.values[ci] || 0;

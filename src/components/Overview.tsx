@@ -26,13 +26,13 @@ const fullVND = (n: number) => (n || 0).toLocaleString('vi-VN');
 
 // KPI card matching the source dashboard's boxed metric look.
 const Kpi: React.FC<{ icon: any; label: string; value: string; accent: string; sub?: string }> = ({ icon: Icon, label, value, accent, sub }) => (
-  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-5 flex items-center gap-4">
-    <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
-      <Icon className="w-8 h-8" />
+  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
+    <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${accent}1a`, color: accent }}>
+      <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
     </div>
     <div className="min-w-0 flex-1">
-      <span className="block text-xs uppercase font-extrabold tracking-wider text-slate-400 truncate">{label}</span>
-      <span className="block text-xl xl:text-2xl font-black leading-tight whitespace-nowrap" style={{ color: accent }} title={value}>{value}</span>
+      <span className="block text-[11px] sm:text-xs uppercase font-extrabold tracking-wider text-slate-400 leading-tight break-words">{label}</span>
+      <span className="block text-base sm:text-lg xl:text-2xl font-black leading-tight break-words" style={{ color: accent }} title={value}>{value}</span>
       {sub && <span className="block text-xs text-slate-400 font-semibold">{sub}</span>}
     </div>
   </div>
@@ -95,7 +95,7 @@ export function Overview({ projects, employees, issues, contracts = [], analytic
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
         <Kpi icon={Users2} label="Số lượng nhân sự" value={headcount.toLocaleString('vi-VN')} accent="#104e8b" />
         <Kpi icon={Coins} label="Tổng quỹ lương" value={`${(salaryFund / 1e9).toFixed(2)} tỷ`} accent="#7c3aed" sub="đồng" />
         <Kpi icon={BadgeCheck} label="S.Lg CCHN" value={cchnCount.toLocaleString('vi-VN')} accent="#0ea5e9" />
