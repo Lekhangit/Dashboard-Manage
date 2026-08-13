@@ -6,10 +6,11 @@
 // ---- Auth / phân quyền ----
 // Danh sách vai trò dùng chung cho cả backend và frontend.
 // (Giai đoạn này chỉ lưu & hiển thị vai trò; quyền hạn chi tiết sẽ phát triển sau.)
-export type Role = 'admin' | 'gddh' | 'bgd' | 'cht' | 'pm' | 'qa' | 'thu_ky' | 'tai_chinh' | 'nhan_su';
+export type Role = 'admin' | 'tgd' | 'gddh' | 'bgd' | 'cht' | 'pm' | 'qa' | 'thu_ky' | 'tai_chinh' | 'nhan_su';
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Quản trị hệ thống',
+  tgd: 'Tổng giám đốc',
   gddh: 'Giám đốc điều hành',
   bgd: 'Ban giám đốc',
   cht: 'Chỉ huy trưởng',
@@ -20,7 +21,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   nhan_su: 'Nhân sự',
 };
 
-export const ROLE_ORDER: Role[] = ['admin', 'gddh', 'bgd', 'cht', 'pm', 'qa', 'thu_ky', 'tai_chinh', 'nhan_su'];
+export const ROLE_ORDER: Role[] = ['admin', 'tgd', 'gddh', 'bgd', 'cht', 'pm', 'qa', 'thu_ky', 'tai_chinh', 'nhan_su'];
 
 // Các quyền hạn chi tiết (permission) có thể bật/tắt cho từng người.
 export type PermissionKey = 'view_compensation';
@@ -40,7 +41,7 @@ export interface AuthUser {
 
 // admin & Giám đốc điều hành luôn có mọi quyền; người khác cần được cấp cụ thể.
 export const hasPerm = (u: { role: Role; permissions?: string[] } | null | undefined, key: PermissionKey): boolean =>
-  !!u && (u.role === 'admin' || u.role === 'gddh' || u.role === 'bgd' || (u.permissions || []).includes(key));
+  !!u && (u.role === 'admin' || u.role === 'tgd' || u.role === 'gddh' || u.role === 'bgd' || (u.permissions || []).includes(key));
 
 export interface Project {
   id: string; name: string; bch: number; revenue: number; avgBch: number;

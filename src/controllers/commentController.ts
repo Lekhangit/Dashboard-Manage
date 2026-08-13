@@ -3,7 +3,7 @@ import { IssueCommentModel, UserModel } from '../models';
 import { AuthedRequest } from '../middleware/auth';
 
 // Chỉ CEO Phương (Giám đốc điều hành) và Ban chỉ huy (Chỉ huy trưởng) được gửi tin.
-const CAN_POST = ['gddh', 'bgd', 'cht'];
+const CAN_POST = ['tgd', 'gddh', 'bgd', 'cht'];
 
 const publicC = (c: any) => ({
   id: String(c._id),
