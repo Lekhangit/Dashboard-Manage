@@ -46,12 +46,18 @@ export const daysOutstanding = (loggedDate?: string, status?: string, storedDays
   return diff >= 0 ? String(diff) : (stored || '—');
 };
 
+const normStatus = (s?: string) =>
+  String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/đ/g, 'd');
+
 export const isOnTrack = (status?: string) => /trong/i.test(status || '');
 export const isLate = (status?: string) => /(trễ|vượt|quá)/i.test(status || '');
 
+// Màu tình trạng dùng chung: xanh = tốt/hoàn tất (Đã ký, Closed, Trong ngân sách);
+// đỏ = mở/trễ (Opened, Trễ, Vượt); vàng = đang xử lý (Đang trình, Ongoing, Pending).
 export const statusPillClass = (status?: string): string => {
-  if (isOnTrack(status)) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if (isLate(status)) return 'bg-rose-50 text-rose-700 border-rose-200';
+  const s = normStatus(status);
+  if (/(da ky|clos|trong|hoan thanh)/.test(s)) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  if (/(open|tre|vuot|qua han|khong dat)/.test(s)) return 'bg-rose-50 text-rose-700 border-rose-200';
   return 'bg-amber-50 text-amber-700 border-amber-200';
 };
 
