@@ -139,10 +139,10 @@ export function DataTable<T>({ columns, rows, minWidthClass, emptyLabel, footer,
 }
 
 // Section card wrapper (uppercase header + body) matching the current look.
-export const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> = ({
-  title, right, children,
+export const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode; className?: string }> = ({
+  title, right, children, className,
 }) => (
-  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
+  <div className={`bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden ${className || ''}`}>
     <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex justify-between items-center gap-3">
       <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">{title}</h3>
       {right}

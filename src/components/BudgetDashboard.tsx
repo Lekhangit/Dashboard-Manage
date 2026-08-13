@@ -102,14 +102,14 @@ export function BudgetDashboard({ budget, issues }: Props) {
           <div className="p-4"><PieChart data={issueSlices} donut /></div>
         </SectionCard>
 
-        <div className="lg:col-span-2">
-          <SectionCard title="Tỷ Trọng Ngân Sách Theo Công Trình">
-            <div className="p-4"><PieChart data={byProject} size={190} /></div>
+        <div className="lg:col-span-2 flex">
+          <SectionCard title="Tỷ Trọng Ngân Sách Theo Công Trình" className="w-full flex flex-col">
+            <div className="p-4 flex-1 flex items-center justify-center"><PieChart data={byProject} size={320} /></div>
           </SectionCard>
         </div>
 
-        <SectionCard title="Ngày Tồn Đọng Theo Người Phụ Trách (Opened / Ongoing)">
-          <div className="p-4">
+        <SectionCard title="Ngày Tồn Đọng Theo Người Phụ Trách (Opened / Ongoing)" className="flex flex-col">
+          <div className="p-4 flex-1">
             <HStackedBar
               categories={ageing.map(a => a[0])}
               series={[
