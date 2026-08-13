@@ -10,7 +10,7 @@
  * drawer with the role-gated chat.
  */
 import React, { useMemo, useState } from 'react';
-import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star } from 'lucide-react';
+import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star, ChevronUp, ChevronDown } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
 import { apiListComments, apiPostComment } from '../authClient';
 import { txt, money, StatusPill, ProjectFilter, daysOutstanding } from './tableKit';
@@ -144,6 +144,7 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   card: (t: T, i: number) => React.ReactNode;
 }) {
   const [dragOver, setDragOver] = useState<Lane | null>(null);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const lanes = useMemo(() => {
     const map: Record<Lane, T[]> = { Opened: [], Pending: [], 'On-going': [], Closed: [] };
     for (const it of items) map[laneKey(it)].push(it);
@@ -152,28 +153,40 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   return (
     <div className="overflow-x-auto">
       <div className="grid grid-cols-4 gap-3 min-w-[900px]">
-        {LANES.map(lane => (
+        {LANES.map(lane => {
+          const isCollapsed = !!collapsed[lane];
+          return (
           <div
             key={lane}
             onDragOver={(e) => { e.preventDefault(); setDragOver(lane); }}
             onDragLeave={() => setDragOver(l => (l === lane ? null : l))}
             onDrop={(e) => { e.preventDefault(); const k = e.dataTransfer.getData('text/plain'); if (k) onMove(k, lane); setDragOver(null); }}
-            className={`rounded-lg overflow-hidden border ${dragOver === lane ? 'border-[#104e8b] ring-2 ring-[#104e8b]/30' : 'border-slate-200'}`}
+            className={`rounded-lg overflow-hidden border self-start ${dragOver === lane ? 'border-[#104e8b] ring-2 ring-[#104e8b]/30' : 'border-slate-200'}`}
           >
-            <div className={`px-3 py-2 text-xs font-bold text-center ${laneHead[lane]}`}>{lane}</div>
+            <button
+              onClick={() => setCollapsed(c => ({ ...c, [lane]: !c[lane] }))}
+              className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold ${laneHead[lane]}`}
+              title={isCollapsed ? 'Mở cột' : 'Thu gọn cột'}
+            >
+              {isCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+              {lane}
+            </button>
             <div className="px-2 py-1.5 text-center text-[11px] font-bold text-slate-500 bg-slate-50 border-b border-slate-200">{lanes[lane].length} việc</div>
-            <div className={`p-2 space-y-2 min-h-[140px] ${laneBody[lane]}`}>
-              {lanes[lane].map((it, i) => (
-                <div key={itemKey(it)} draggable
-                  onDragStart={(e) => { e.dataTransfer.setData('text/plain', itemKey(it)); e.dataTransfer.effectAllowed = 'move'; }}
-                  className="cursor-grab active:cursor-grabbing">
-                  {card(it, i)}
-                </div>
-              ))}
-              {lanes[lane].length === 0 && <p className="text-[11px] text-slate-300 italic text-center py-4">—</p>}
-            </div>
+            {!isCollapsed && (
+              <div className={`p-2 space-y-2 min-h-[140px] max-h-[62vh] overflow-y-auto ${laneBody[lane]}`}>
+                {lanes[lane].map((it, i) => (
+                  <div key={itemKey(it)} draggable
+                    onDragStart={(e) => { e.dataTransfer.setData('text/plain', itemKey(it)); e.dataTransfer.effectAllowed = 'move'; }}
+                    className="cursor-grab active:cursor-grabbing">
+                    {card(it, i)}
+                  </div>
+                ))}
+                {lanes[lane].length === 0 && <p className="text-[11px] text-slate-300 italic text-center py-4">—</p>}
+              </div>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
