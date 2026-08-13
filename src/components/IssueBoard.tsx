@@ -9,8 +9,8 @@
  * source of truth stays the Excel import). Chance-log cards open a detail
  * drawer with the role-gated chat.
  */
-import React, { useMemo, useState } from 'react';
-import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
 import { apiListComments, apiPostComment } from '../authClient';
 import { txt, money, StatusPill, ProjectFilter, daysOutstanding } from './tableKit';
@@ -202,7 +202,31 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
   const [proj, setProj] = useState('');
   const [selected, setSelected] = useState<Issue | null>(null);
   const [override, setOverride] = useState<Record<string, Lane>>({});
-  const move = (key: string, lane: Lane) => setOverride(o => ({ ...o, [key]: lane }));
+  const [canUndo, setCanUndo] = useState(false);
+  const overrideRef = useRef(override);
+  const undoStackRef = useRef<Record<string, Lane>[]>([]);
+  useEffect(() => { overrideRef.current = override; }, [override]);
+
+  const move = (key: string, lane: Lane) => {
+    undoStackRef.current.push({ ...overrideRef.current }); // lưu trạng thái trước khi đổi
+    setCanUndo(true);
+    setOverride(o => ({ ...o, [key]: lane }));
+  };
+  const undo = () => {
+    const stack = undoStackRef.current;
+    if (!stack.length) return;
+    const prev = stack.pop()!;
+    setOverride(prev);
+    setCanUndo(stack.length > 0);
+  };
+  // Ctrl+Z (hoặc ⌘Z) để hoàn tác lần kéo gần nhất.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const projectOptions = useMemo(() => [...new Set(issues.map(i => (i.project || '').trim()).filter(Boolean))].sort(), [issues]);
   const shownIssues = useMemo(() => (proj ? issues.filter(i => (i.project || '').trim() === proj) : issues), [issues, proj]);
@@ -245,7 +269,12 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
         <div className="p-4">
           {board === 'chance' ? (
             <>
-              <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái · nhấn <b>Ctrl+Z</b> để hoàn tác (chỉ trên màn hình, không ghi vào file).</p>
+                <button onClick={undo} disabled={!canUndo} className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
+                  <RotateCcw className="w-3.5 h-3.5" /> Hoàn tác
+                </button>
+              </div>
               <Board
                 items={shownIssues}
                 itemKey={issueKey}
@@ -263,7 +292,12 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
             </>
           ) : (
             <>
-              <p className="text-[11px] text-slate-400 mb-2 italic">Kéo-thả thẻ giữa các cột để đổi trạng thái (chỉ trên màn hình, không ghi vào file).</p>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái · nhấn <b>Ctrl+Z</b> để hoàn tác (chỉ trên màn hình, không ghi vào file).</p>
+                <button onClick={undo} disabled={!canUndo} className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
+                  <RotateCcw className="w-3.5 h-3.5" /> Hoàn tác
+                </button>
+              </div>
               <Board
                 items={todos}
                 itemKey={todoKey}
