@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { createUploadRequest, listUploadRequests, approveUpload, rejectUpload, previewUpload, downloadUpload, importNow } from '../controllers/uploadController';
-import { getCategoryData, getCompensation, getAnalytics } from '../controllers/dataController';
+import { getCategoryData, getCompensation, getAnalytics, updateIssueStatus, updateTodoStatus } from '../controllers/dataController';
 import { login, me, changePassword, listUsers, createUser, updateUser } from '../controllers/authController';
 import { listComments, postComment } from '../controllers/commentController';
 import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth';
@@ -35,6 +35,10 @@ router.get('/uploads/:id/preview', requireAuth, previewUpload);
 router.get('/uploads/:id/download', requireAuth, downloadUpload);
 router.post('/uploads/:id/approve', requireAuth, approveUpload);
 router.post('/uploads/:id/reject', requireAuth, rejectUpload);
+
+// ---- Kanban: lưu tình trạng khi kéo-thả ----
+router.patch('/issues/:id/status', requireAuth, updateIssueStatus);
+router.patch('/todos/status', requireAuth, updateTodoStatus);
 
 // ---- Thảo luận chỉ đạo theo vấn đề (chat: chỉ GĐĐH & CHT được gửi) ----
 router.get('/issues/:issueId/comments', requireAuth, listComments);

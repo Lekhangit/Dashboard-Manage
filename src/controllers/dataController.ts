@@ -75,6 +75,42 @@ export const getAnalytics = async (_req: Request, res: Response) => {
   }
 };
 
+// ---- Kanban: lưu trạng thái khi kéo-thả (cột = tình trạng) ----
+// Chỉ nhận đúng 4 giá trị cột, tránh ghi rác vào DB.
+const KANBAN_LANES = ['Opened', 'Pending', 'On-going', 'Closed'];
+
+export const updateIssueStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const status = String(req.body?.status || '').trim();
+    if (!KANBAN_LANES.includes(status)) return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
+    const r = await IssueModel.updateOne({ id }, { $set: { status } });
+    if (!r.matchedCount) return res.status(404).json({ error: 'Không tìm thấy vấn đề' });
+    res.json({ ok: true, id, status });
+  } catch (e: any) {
+    console.error('Update issue status error:', e);
+    res.status(500).json({ error: e.message || 'Internal Server Error' });
+  }
+};
+
+export const updateTodoStatus = async (req: Request, res: Response) => {
+  try {
+    const status = String(req.body?.status || '').trim();
+    const tt = Number(req.body?.tt);
+    const content = String(req.body?.content ?? '');
+    if (!KANBAN_LANES.includes(status)) return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
+    if (!Number.isFinite(tt)) return res.status(400).json({ error: 'Thiếu định danh công việc' });
+    // Khớp theo tt + nội dung để đúng dòng (tt có thể trùng giữa các nhóm).
+    const filter: any = content ? { tt, content } : { tt };
+    const r = await TodoModel.updateOne(filter, { $set: { status } });
+    if (!r.matchedCount) return res.status(404).json({ error: 'Không tìm thấy công việc' });
+    res.json({ ok: true, tt, status });
+  } catch (e: any) {
+    console.error('Update todo status error:', e);
+    res.status(500).json({ error: e.message || 'Internal Server Error' });
+  }
+};
+
 // Dữ liệu Chi phí & Lương đãi ngộ (đầy đủ). Route đã gắn requirePermission('view_compensation').
 export const getCompensation = async (_req: Request, res: Response) => {
   try {

@@ -5,14 +5,15 @@
  * Chance Management — two switchable Kanban boards (like the Excel):
  *  • KANBAN - CHANCE LOGS (issues / warranty)  — also a "Danh sách" table view
  *  • KANBAN BOARD - QUẢN LÝ CÔNG VIỆC BẢN THÂN (personal to-do)
- * Cards are drag-and-droppable between lanes (local view state only — the
- * source of truth stays the Excel import). Chance-log cards open a detail
- * drawer with the role-gated chat.
+ * Cards are drag-and-droppable between lanes; a successful move (and Ctrl+Z
+ * undo) is PERSISTED to the DB via PATCH so it survives reload. A later Excel
+ * re-import still overwrites everything (Excel remains the master source).
+ * Chance-log cards open a detail drawer with the role-gated chat.
  */
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { X, Lock, Send, MessageSquare, AlertTriangle, CheckSquare, CheckCircle2, Star, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
 import { Issue, Todo, Project, AuthUser } from '../types';
-import { apiListComments, apiPostComment } from '../authClient';
+import { apiListComments, apiPostComment, apiSetIssueStatus, apiSetTodoStatus } from '../authClient';
 import { txt, money, StatusPill, ProjectFilter, daysOutstanding } from './tableKit';
 
 interface Props {
@@ -200,6 +201,10 @@ function Board<T>({ items, itemKey, laneKey, onMove, card }: {
   );
 }
 
+// Định danh thẻ dùng chung (khớp giữa hiển thị và lệnh lưu DB).
+const issueKeyOf = (i: Issue) => i.id;
+const todoKeyOf = (t: Todo) => `todo-${t.tt}-${(t.content || '').slice(0, 24)}`;
+
 export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
   // Match the Excel "Chance Logs" order (by Ngày ghi nhận ascending).
   const issues = useMemo(
@@ -211,19 +216,69 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
   const [selected, setSelected] = useState<Issue | null>(null);
   const [override, setOverride] = useState<Record<string, Lane>>({});
   const [canUndo, setCanUndo] = useState(false);
+  const [err, setErr] = useState('');
   const overrideRef = useRef(override);
   const undoStackRef = useRef<Record<string, Lane>[]>([]);
   useEffect(() => { overrideRef.current = override; }, [override]);
 
+  // Bản đồ tra cứu (giữ trong ref để hàm undo bắt bằng listener [] vẫn đọc bản mới nhất).
+  const lookupRef = useRef({ issueStatus: new Map<string, string>(), todoByKey: new Map<string, Todo>() });
+  useEffect(() => {
+    const issueStatus = new Map<string, string>();
+    for (const i of issues) issueStatus.set(issueKeyOf(i), i.status || '');
+    const todoByKey = new Map<string, Todo>();
+    for (const t of todos) todoByKey.set(todoKeyOf(t), t);
+    lookupRef.current = { issueStatus, todoByKey };
+  }, [issues, todos]);
+
+  // Cột hiện thời của 1 thẻ khi CHƯA có override (lấy từ tình trạng gốc Excel/DB).
+  const origLaneOf = (key: string): Lane => {
+    const { issueStatus, todoByKey } = lookupRef.current;
+    const s = key.startsWith('todo-') ? todoByKey.get(key)?.status : issueStatus.get(key);
+    return laneOf(s);
+  };
+  const laneNow = (key: string): Lane => overrideRef.current[key] ?? origLaneOf(key);
+
+  // Ghi tình trạng mới vào DB.
+  const persist = (key: string, lane: Lane): Promise<any> => {
+    if (key.startsWith('todo-')) {
+      const t = lookupRef.current.todoByKey.get(key);
+      return t ? apiSetTodoStatus(t.tt, t.content || '', lane) : Promise.reject(new Error('Không tìm thấy công việc'));
+    }
+    return apiSetIssueStatus(key, lane);
+  };
+  const flashErr = (m: string) => { setErr(m); setTimeout(() => setErr(''), 4000); };
+
   const move = (key: string, lane: Lane) => {
+    const prevLane = laneNow(key);
+    if (prevLane === lane) return; // không đổi cột -> bỏ qua
     undoStackRef.current.push({ ...overrideRef.current }); // lưu trạng thái trước khi đổi
     setCanUndo(true);
     setOverride(o => ({ ...o, [key]: lane }));
+    persist(key, lane).catch(() => {
+      // Ghi DB lỗi -> hoàn tác thay đổi trên màn hình.
+      setOverride(o => {
+        const n = { ...o };
+        if (prevLane !== origLaneOf(key)) n[key] = prevLane; else delete n[key];
+        return n;
+      });
+      undoStackRef.current.pop();
+      setCanUndo(undoStackRef.current.length > 0);
+      flashErr('Không lưu được vào hệ thống — đã hoàn tác thay đổi.');
+    });
   };
   const undo = () => {
     const stack = undoStackRef.current;
     if (!stack.length) return;
     const prev = stack.pop()!;
+    const cur = overrideRef.current;
+    // Ghi DB cho mọi thẻ thay đổi giữa trạng thái hiện tại và trạng thái khôi phục.
+    const keys = new Set([...Object.keys(cur), ...Object.keys(prev)]);
+    keys.forEach((key) => {
+      const beforeLane = cur[key] ?? origLaneOf(key);
+      const afterLane = prev[key] ?? origLaneOf(key);
+      if (beforeLane !== afterLane) persist(key, afterLane).catch(() => flashErr('Không lưu được khi hoàn tác.'));
+    });
     setOverride(prev);
     setCanUndo(stack.length > 0);
   };
@@ -239,8 +294,8 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
   const projectOptions = useMemo(() => [...new Set(issues.map(i => (i.project || '').trim()).filter(Boolean))].sort(), [issues]);
   const shownIssues = useMemo(() => (proj ? issues.filter(i => (i.project || '').trim() === proj) : issues), [issues, proj]);
 
-  const issueKey = (i: Issue) => i.id;
-  const todoKey = (t: Todo) => `todo-${t.tt}-${(t.content || '').slice(0, 24)}`;
+  const issueKey = issueKeyOf;
+  const todoKey = todoKeyOf;
   const laneForIssue = (i: Issue) => override[issueKey(i)] ?? laneOf(i.status);
   const laneForTodo = (t: Todo) => override[todoKey(t)] ?? laneOf(t.status);
 
@@ -275,10 +330,13 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
         </div>
 
         <div className="p-4">
+          {err && (
+            <div className="mb-3 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{err}</div>
+          )}
           {board === 'chance' ? (
             <>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái · nhấn <b>Ctrl+Z</b> để hoàn tác (chỉ trên màn hình, không ghi vào file).</p>
+                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái — <b>tự lưu vào hệ thống</b> · nhấn <b>Ctrl+Z</b> để hoàn tác.</p>
                 <button onClick={undo} disabled={!canUndo} className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
                   <RotateCcw className="w-3.5 h-3.5" /> Hoàn tác
                 </button>
@@ -301,7 +359,7 @@ export function IssueBoard({ issues: rawIssues, todos = [], authUser }: Props) {
           ) : (
             <>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái · nhấn <b>Ctrl+Z</b> để hoàn tác (chỉ trên màn hình, không ghi vào file).</p>
+                <p className="text-[11px] text-slate-400 italic">Kéo-thả thẻ để đổi trạng thái — <b>tự lưu vào hệ thống</b> · nhấn <b>Ctrl+Z</b> để hoàn tác.</p>
                 <button onClick={undo} disabled={!canUndo} className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
                   <RotateCcw className="w-3.5 h-3.5" /> Hoàn tác
                 </button>

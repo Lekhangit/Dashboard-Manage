@@ -49,6 +49,20 @@ export async function apiImportNow(file: File): Promise<{ ok: boolean; stats: an
   return jsonOrThrow(res) as any;
 }
 
+// Kanban: lưu tình trạng khi kéo-thả thành công (ghi vào DB).
+export async function apiSetIssueStatus(id: string, status: string) {
+  const res = await fetch(`/api/issues/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+  });
+  return jsonOrThrow(res);
+}
+export async function apiSetTodoStatus(tt: number, content: string, status: string) {
+  const res = await fetch('/api/todos/status', {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tt, content, status }),
+  });
+  return jsonOrThrow(res);
+}
+
 export const apiGetPivot     = async (): Promise<string[][]> => {
   const rows = await getJson('/api/data/pivot');
   return (Array.isArray(rows) && rows[0] && rows[0].grid) ? rows[0].grid : [];
