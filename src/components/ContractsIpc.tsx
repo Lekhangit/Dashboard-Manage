@@ -103,6 +103,7 @@ export function ContractsIpc({ contracts, ipc, projects, initialTab = 'contracts
     { header: 'Đã nhận', align: 'right', render: r => money(r.received) },
     { header: 'Còn lại', align: 'right', render: r => money(r.remaining) },
     { header: 'Tình trạng', align: 'center', render: r => <StatusPill status={r.status} /> },
+    { header: 'Ghi chú', render: r => <span className="text-slate-500">{txt(r.note)}</span> },
   ];
 
   const TabBtn = ({ k, label, icon: Icon, badge }: { k: 'contracts' | 'ipc'; label: string; icon: any; badge: number }) => (
@@ -157,14 +158,14 @@ export function ContractsIpc({ contracts, ipc, projects, initialTab = 'contracts
         {tab === 'contracts'
           ? <DataTable columns={contractCols} rows={fContracts} minWidthClass="min-w-[900px]" maxHeightClass="max-h-[68vh]" emptyLabel="Chưa có hợp đồng."
               footer={['Total', '', '', money(fContracts.reduce((s, c) => s + (c.amount || 0), 0)), money(fContracts.reduce((s, c) => s + (c.budget || 0), 0)), '', '']} />
-          : <DataTable columns={ipcCols} rows={fIpc} minWidthClass="min-w-[1100px]" maxHeightClass="max-h-[68vh]" emptyLabel="Chưa có IPC."
+          : <DataTable columns={ipcCols} rows={fIpc} minWidthClass="min-w-[1300px]" maxHeightClass="max-h-[68vh]" emptyLabel="Chưa có IPC."
               footer={['Total', '', '', '',
                 money(fIpc.reduce((s, r) => s + (r.amount || 0), 0)),
                 money(fIpc.reduce((s, r) => s + (r.vat || 0), 0)),
                 money(fIpc.reduce((s, r) => s + (r.total || 0), 0)),
                 money(fIpc.reduce((s, r) => s + (r.actualReceived || 0), 0)),
                 money(fIpc.reduce((s, r) => s + (r.received || 0), 0)),
-                money(fIpc.reduce((s, r) => s + (r.remaining || 0), 0)), '']} />}
+                money(fIpc.reduce((s, r) => s + (r.remaining || 0), 0)), '', '']} />}
       </SectionCard>
     </div>
   );
